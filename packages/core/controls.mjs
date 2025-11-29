@@ -465,6 +465,7 @@ export const { fmi, fm } = registerControl(['fmi', 'fmh'], 'fm');
  *
  * @name fmenv
  * @param {number | Pattern} type lin | exp
+ * @synonyms fme
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -474,12 +475,13 @@ export const { fmi, fm } = registerControl(['fmi', 'fmh'], 'fm');
  * ._scope()
  *
  */
-export const { fmenv } = registerControl('fmenv');
+export const { fmenv } = registerControl('fmenv', 'fme');
 /**
  * Attack time for the FM envelope: time it takes to reach maximum modulation
  *
  * @name fmattack
  * @param {number | Pattern} time attack time
+ * @synonyms fmatt
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -487,7 +489,7 @@ export const { fmenv } = registerControl('fmenv');
  * ._scope()
  *
  */
-export const { fmattack } = registerControl('fmattack');
+export const { fmattack } = registerControl('fmattack', 'fmatt');
 
 /**
  * Waveform of the fm modulator
@@ -507,6 +509,7 @@ export const { fmwave } = registerControl('fmwave');
  *
  * @name fmdecay
  * @param {number | Pattern} time decay time
+ * @synonyms fmdec
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -515,12 +518,13 @@ export const { fmwave } = registerControl('fmwave');
  * ._scope()
  *
  */
-export const { fmdecay } = registerControl('fmdecay');
+export const { fmdecay } = registerControl('fmdecay', 'fmdec');
 /**
  * Sustain level for the FM envelope: how much modulation is applied after the decay phase
  *
  * @name fmsustain
  * @param {number | Pattern} level sustain level
+ * @synonyms fmsus
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -529,10 +533,10 @@ export const { fmdecay } = registerControl('fmdecay');
  * ._scope()
  *
  */
-export const { fmsustain } = registerControl('fmsustain');
+export const { fmsustain } = registerControl('fmsustain', 'fmsus');
 // these are not really useful... skipping for now
-export const { fmrelease } = registerControl('fmrelease');
-export const { fmvelocity } = registerControl('fmvelocity');
+export const { fmrelease } = registerControl('fmrelease', 'fmrel');
+export const { fmvelocity } = registerControl('fmvelocity', 'fmvel');
 
 /**
  * Select the sound bank to use. To be used together with `s`. The bank name (+ "_") will be prepended to the value of `s`.
@@ -862,7 +866,7 @@ export const { duckonset } = registerControl('duckonset', 'duckons');
  * Note: this requires first applying the effect to multiple orbits with e.g. `duckorbit("2:3")`.
  *
  * @name duckattack
- * @synonyms duckatt
+ * @synonyms duckatt, datt
  *
  * @param {number | Pattern} time The attack time in seconds
  * @example
@@ -874,20 +878,20 @@ export const { duckonset } = registerControl('duckonset', 'duckons');
  * ducker: s("bd:4!4").beat("0,4,8,11,14",16).duckorbit("2:5").duckattack("0.4:0.1")
  *
  */
-export const { duckattack } = registerControl('duckattack', 'duckatt');
+export const { duckattack } = registerControl('duckattack', 'duckatt', 'datt');
 
 /**
  * Create byte beats with custom expressions
  *
  * @name byteBeatExpression
- * @synonyms bbexpr
+ * @synonyms bbexpr, bb
  *
  * @param {number | Pattern} byteBeatExpression bitwise expression for creating bytebeat
  * @example
  * s("bytebeat").bbexpr('t*(t>>15^t>>66)')
  *
  */
-export const { byteBeatExpression, bbexpr } = registerControl('byteBeatExpression', 'bbexpr');
+export const { byteBeatExpression, bbexpr } = registerControl('byteBeatExpression', 'bbexpr', 'bb');
 
 /**
  * Create byte beats with custom expressions
@@ -931,24 +935,26 @@ export const { pw } = registerControl(['pw', 'pwrate', 'pwsweep']);
  * Controls the lfo rate for the pulsewidth of the pulse oscillator
  *
  * @name pwrate
+ * @synonyms pwr
  * @param {number | Pattern} rate
  * @example
  * n(run(8)).scale("D:pentatonic").s("pulse").pw("0.5").pwrate("<5 .1 25>").pwsweep("<0.3 .8>")
 
  *
  */
-export const { pwrate } = registerControl('pwrate');
+export const { pwrate } = registerControl('pwrate', 'pwr');
 
 /**
  * Controls the lfo sweep for the pulsewidth of the pulse oscillator
  *
  * @name pwsweep
+ * @synonyms pws
  * @param {number | Pattern} sweep
  * @example
  * n(run(8)).scale("D:pentatonic").s("pulse").pw("0.5").pwrate("<5 .1 25>").pwsweep("<0.3 .8>")
  *
  */
-export const { pwsweep } = registerControl('pwsweep');
+export const { pwsweep } = registerControl('pwsweep', 'pws');
 
 /**
  * Phaser audio effect that approximates popular guitar pedals.
@@ -1615,12 +1621,12 @@ export const { delaytime, delayt, dt } = registerControl('delaytime', 'delayt', 
  *
  * @name delaysync
  * @param {number | Pattern} cycles delay length in cycles
- * @synonyms delayt, dt
+ * @synonyms delays, ds
  * @example
  * s("bd bd").delay(.25).delaysync("<1 2 3 5>".div(8))
  *
  */
-export const { delaysync } = registerControl('delaysync');
+export const { delaysync } = registerControl('delaysync', 'delays', 'ds');
 
 /**
  * Specifies whether delaytime is calculated relative to cps.
