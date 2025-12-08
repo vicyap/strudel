@@ -2,6 +2,10 @@
 
 NOTE: you can generate this with `node warm.js`. it might still not be perfectly sorted...
 
+## december 2025
+
+- 2025-12-08 Add Helix keybindings support to REPL editor - Added `codemirror-helix` package integration, enabling Helix editor keybindings as a new option in the REPL settings alongside Vim, Emacs, and VSCode modes
+
 ## november 2025
 
 - 2025-11-27T22:03:53+01:00 [perf] in `noise`, let noiseMix do the disconnect when it exists by jeromew in: [#1783](https://codeberg.org/uzu/strudel/pulls/1783) 
