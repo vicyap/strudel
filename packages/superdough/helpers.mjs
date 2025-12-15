@@ -189,7 +189,7 @@ export function applyParameterModulators(audioContext, param, start, end, envelo
     getParamADSR(param, attack, decay, sustain, release, min, max, start, holdEnd, curve);
   }
   const lfo = getParamLfo(audioContext, param, start, end, lfoValues);
-  return { lfo, disconnect: () => lfo?.disconnect() };
+  return lfo;
 }
 export function createFilter(context, start, end, params, cps, cycle) {
   let {
@@ -283,9 +283,12 @@ export function drywet(dry, wet, wetAmount = 0) {
   wet_gain.connect(mix);
   return {
     node: mix,
-    onended: () => {
-      dry_gain.disconnect(mix);
-      wet_gain.disconnect(mix);
+    teardown: () => {
+      releaseAudioNode(dry_gain);
+      releaseAudioNode(wet_gain);
+      // it is not the responsability of drywet
+      // to call `releaseAudioNode` on
+      // the 2 external args dry and wet
       dry.disconnect(dry_gain);
       wet.disconnect(wet_gain);
     },
@@ -324,10 +327,10 @@ export function getVibratoOscillator(param, value, t) {
     gain.gain.value = vibmod * 100;
     vibratoOscillator.connect(gain);
     gain.connect(param);
-    vibratoOscillator.onended = () => {
-      gain.disconnect(param);
-      vibratoOscillator.disconnect(gain);
-    };
+    onceEnded(vibratoOscillator, () => {
+      releaseAudioNode(gain);
+      releaseAudioNode(vibratoOscillator);
+    });
     vibratoOscillator.start(t);
     return vibratoOscillator;
   }
@@ -590,7 +593,7 @@ export const releaseAudioNode = (node) => {
   // make sure all AudioScheduledSourceNodes are in a stopped state
   // https://developer.mozilla.org/en-US/docs/Web/API/AudioScheduledSourceNode
   if (node instanceof AudioScheduledSourceNode) {
-    if (node.onended && node.onended.name !== 'cleanup') {
+    if (process.env.NODE_ENV === 'development' && node.onended && node.onended.name !== 'cleanup') {
       logger(
         `[superdough] Deprecation warning: it seems your code path is setting 'node.onended = callback' instead of using the onceEnded helper`,
       );
@@ -613,6 +616,8 @@ export const releaseAudioNode = (node) => {
   // returns true and either its active source flag is true or
   // any AudioNode connected to one of its inputs is actively processing.
   if (node instanceof AudioWorkletNode) {
+    // while `end` is not native to the web audio API, it is common practice in superdough
+    // to use that param in the worklets to trigger returning false from the processor
     node.parameters.get('end')?.setValueAtTime(0, 0);
   }
 };

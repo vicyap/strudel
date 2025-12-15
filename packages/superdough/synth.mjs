@@ -12,6 +12,7 @@ import {
   getVibratoOscillator,
   getWorklet,
   noises,
+  onceEnded,
   releaseAudioNode,
   webAudioTimeout,
 } from './helpers.mjs';
@@ -52,7 +53,7 @@ export function registerSynthSounds() {
         const g = gainNode(0.3);
 
         let sound = getOscillator(s, t, value, () => {
-          g.disconnect();
+          releaseAudioNode(g);
           onended();
         });
 
@@ -110,15 +111,15 @@ export function registerSynthSounds() {
 
       const mix = gainNode(mixGain);
 
-      o.onended = () => {
-        o.disconnect();
-        g.disconnect();
-        sat.disconnect();
-        noise.node.disconnect();
-        noiseGain.disconnect();
-        mix.disconnect();
+      onceEnded(o, () => {
+        releaseAudioNode(o);
+        releaseAudioNode(g);
+        releaseAudioNode(sat);
+        releaseAudioNode(noise.node);
+        releaseAudioNode(noiseGain);
+        releaseAudioNode(mix);
         onended();
-      };
+      });
 
       const node = o.connect(sat).connect(g).connect(mix);
       noise.node.connect(noiseGain).connect(mix);
@@ -384,11 +385,11 @@ export function registerSynthSounds() {
 
         const { duration } = value;
 
-        o.onended = () => {
-          o.disconnect();
-          g.disconnect();
+        onceEnded(o, () => {
+          releaseAudioNode(o);
+          releaseAudioNode(g);
           onended();
-        };
+        });
 
         const envGain = gainNode(1);
         let node = o.connect(g).connect(envGain);
@@ -489,11 +490,12 @@ export function getOscillator(s, t, value, onended) {
     noiseMix = getNoiseMix(o, noise, t);
   }
 
-  o.onended = () => {
-    noiseMix || o.disconnect();
-    noiseMix?.node.disconnect();
+  onceEnded(o, () => {
+    noiseMix?.teardown();
+    releaseAudioNode(o);
+    releaseAudioNode(noiseMix?.node);
     onended();
-  };
+  });
   o.start(t);
 
   return {

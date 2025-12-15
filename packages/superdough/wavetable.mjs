@@ -320,10 +320,10 @@ export async function onTriggerSynth(t, value, onended, tables, cps, frameLen) {
     ac,
     () => {
       releaseAudioNode(source);
-      vibratoOscillator?.stop();
+      releaseAudioNode(vibratoOscillator);
       fm?.stop();
-      wtPosModulators?.disconnect();
-      wtWarpModulators?.disconnect();
+      releaseAudioNode(wtPosModulators);
+      releaseAudioNode(wtWarpModulators);
       onended();
     },
     t,

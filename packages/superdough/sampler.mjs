@@ -323,10 +323,10 @@ export async function onTriggerSample(t, value, onended, bank, resolveUrl) {
   const out = ac.createGain(); // we need a separate gain for the cutgroups because firefox...
   node.connect(out);
   onceEnded(bufferSource, function () {
-    bufferSource.disconnect();
-    vibratoOscillator?.stop();
-    node.disconnect();
-    out.disconnect();
+    releaseAudioNode(bufferSource);
+    releaseAudioNode(vibratoOscillator);
+    releaseAudioNode(node);
+    releaseAudioNode(out);
     onended();
   });
   let envEnd = holdEnd + release + 0.01;

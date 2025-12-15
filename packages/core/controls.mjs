@@ -2753,8 +2753,13 @@ export const as = register('as', (mapping, pat) => {
   mapping = Array.isArray(mapping) ? mapping : [mapping];
   return pat.fmap((v) => {
     v = Array.isArray(v) ? v : [v];
-    v = Object.fromEntries(mapping.map((prop, i) => [getControlName(prop), v[i]]));
-    return v;
+    const entries = [];
+    for (let i = 0; i < mapping.length; ++i) {
+      if (v[i] !== undefined) {
+        entries.push([getControlName(mapping[i]), v[i]]);
+      }
+    }
+    return Object.fromEntries(entries);
   });
 });
 

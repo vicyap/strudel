@@ -5,6 +5,7 @@ import { errorLogger, logger } from './logger.mjs';
 import { setTime } from './time.mjs';
 import { evalScope } from './evaluate.mjs';
 import { register, Pattern, isPattern, silence, stack } from './pattern.mjs';
+import { reset_state } from './impure.mjs';
 
 export function repl({
   defaultOutput,
@@ -52,6 +53,9 @@ export function repl({
     onToggle: (started) => {
       updateState({ started });
       onToggle?.(started);
+      if (!started) {
+        reset_state();
+      }
     },
     setInterval,
     clearInterval,
