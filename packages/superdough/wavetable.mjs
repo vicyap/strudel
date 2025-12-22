@@ -40,6 +40,11 @@ export const Warpmode = Object.freeze({
 });
 
 const seenKeys = new Set();
+
+export function resetSeenKeys() {
+  seenKeys.clear();
+}
+
 async function getPayload(url, label, frameLen = 2048) {
   const key = `${url},${frameLen}`;
   if (!seenKeys.has(key)) {

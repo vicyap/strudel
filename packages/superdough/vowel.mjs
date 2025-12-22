@@ -75,7 +75,7 @@ if (typeof GainNode !== 'undefined') {
     }
   }
 
-  AudioContext.prototype.createVowelFilter = function (letter) {
+  BaseAudioContext.prototype.createVowelFilter = function (letter) {
     return new VowelNode(this, letter);
   };
 }

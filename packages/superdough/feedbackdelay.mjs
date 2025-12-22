@@ -25,7 +25,7 @@ if (typeof DelayNode !== 'undefined') {
     }
   }
 
-  AudioContext.prototype.createFeedbackDelay = function (wet, time, feedback) {
+  BaseAudioContext.prototype.createFeedbackDelay = function (wet, time, feedback) {
     return new FeedbackDelayNode(this, wet, time, feedback);
   };
 }
