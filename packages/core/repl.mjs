@@ -172,9 +172,9 @@ export function repl({
     // These are Pattern.prototype methods that create persistent visualizations
     // I don't like this approach, feels hacky, but since these methods don't create ids that
     // can be read through the transpiler, I'm not sure how best to detect them.
-    // Would probably be better to register these methods through some function that would 
+    // Would probably be better to register these methods through some function that would
     // tag them better
-    const nonInlineWidgets = ['punchcard', 'spiral', 'scope', 'pitchwheel', 'spectrum', 'pianoroll', 'wordfall',];
+    const nonInlineWidgets = ['punchcard', 'spiral', 'scope', 'pitchwheel', 'spectrum', 'pianoroll', 'wordfall'];
 
     for (const widget of nonInlineWidgets) {
       const widgetRegex = new RegExp(`\\.${widget}\\s*\\(`);
@@ -187,17 +187,15 @@ export function repl({
 
   // Helper function to handle single label code block storage
   function handleSingleLabelBlock(label, code, options, meta) {
-
     // Detect if this block contains a non-inline widget
     // For 'all' label, widget info is already on the label object from extractLabelsFromCode
 
-    // As mentioned in detectActiveVisualizer, this is a bad approach to 
+    // As mentioned in detectActiveVisualizer, this is a bad approach to
     // managing non-inline widgets (or widgets that don't have ids)
     // and a proper solution would give them widgets in the transpiler, or at least
     // track where they are so we don't have to futz around with regexes
-    const activeVisualizer = label.activeVisualizer !== undefined
-      ? label.activeVisualizer
-      : detectActiveVisualizer(code);
+    const activeVisualizer =
+      label.activeVisualizer !== undefined ? label.activeVisualizer : detectActiveVisualizer(code);
 
     if (activeVisualizer !== null) {
       lastActiveVisualizerLabel = label.name;
@@ -213,7 +211,6 @@ export function repl({
       sliders: meta?.sliders || [],
       activeVisualizer: activeVisualizer, // Store the widget type if present, null otherwise
     };
-
 
     // Clean up any blocks with conflicting ranges
     for (const [existingKey, existingBlock] of Object.entries(codeBlocks)) {
@@ -412,7 +409,7 @@ export function repl({
         if (labels.length > 0) {
           for (let i = 0; i < labels.length; i++) {
             // processLabeledBlock(labels, i, code, options, meta);
-            // processing transpiler output instead of code is simply to avoid 
+            // processing transpiler output instead of code is simply to avoid
             // extra regex in detecting whether or not an inline widget has been commented out
             processLabeledBlock(labels, i, meta.output, options, meta);
           }
@@ -514,7 +511,6 @@ export function repl({
         pending: false,
       });
 
-
       afterEval?.({ code, pattern, meta, range: options.range, widgetRemoved });
       return pattern;
     } catch (err) {
@@ -530,18 +526,18 @@ export function repl({
 
 export const getTrigger =
   ({ getTime, defaultOutput }) =>
-    async (hap, deadline, duration, cps, t) => {
-      //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
-      // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
-      try {
-        if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
-          await defaultOutput(hap, deadline, duration, cps, t);
-        }
-        if (hap.context.onTrigger) {
-          // call signature of output / onTrigger is different...
-          await hap.context.onTrigger(hap, getTime(), cps, t);
-        }
-      } catch (err) {
-        errorLogger(err, 'getTrigger');
+  async (hap, deadline, duration, cps, t) => {
+    //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
+    // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
+    try {
+      if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
+        await defaultOutput(hap, deadline, duration, cps, t);
       }
-    };
+      if (hap.context.onTrigger) {
+        // call signature of output / onTrigger is different...
+        await hap.context.onTrigger(hap, getTime(), cps, t);
+      }
+    } catch (err) {
+      errorLogger(err, 'getTrigger');
+    }
+  };

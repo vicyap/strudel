@@ -190,7 +190,6 @@ export class StrudelMirror {
       this.onDraw(haps, time, painters);
     }, drawTime);
 
-
     this.prebaked = prebake();
     autodraw && this.drawFirstFrame();
     this.repl = repl({

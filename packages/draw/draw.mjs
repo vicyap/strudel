@@ -83,8 +83,8 @@ export const cleanupDrawContext = (replID) => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   // clear the big canvas context, ignore inline widgets
-  Object.keys(animationFrames).forEach((id) => 
-    (!replID || id.startsWith(replID)) && !id.startsWith('_') && stopAnimationFrame(id)
+  Object.keys(animationFrames).forEach(
+    (id) => (!replID || id.startsWith(replID)) && !id.startsWith('_') && stopAnimationFrame(id),
   );
 };
 

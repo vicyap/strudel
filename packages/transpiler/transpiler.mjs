@@ -25,7 +25,7 @@ export function transpiler(input, options = {}) {
     emitMiniLocations = true,
     emitWidgets = true,
     blockBased = false,
-    range = []
+    range = [],
   } = options;
 
   let ast = parse(input, {
