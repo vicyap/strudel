@@ -32,6 +32,7 @@ export const defaultSettings = {
   isPatternHighlightingEnabled: true,
   isTabIndentationEnabled: false,
   isMultiCursorEnabled: false,
+  isBlockBasedEvalEnabled: false,
   theme: 'strudelTheme',
   fontFamily: 'monospace',
   fontSize: 18,
@@ -92,6 +93,7 @@ export function useSettings() {
     isSyncEnabled: isUdels() ? true : parseBoolean(state.isSyncEnabled),
     isTabIndentationEnabled: parseBoolean(state.isTabIndentationEnabled),
     isMultiCursorEnabled: parseBoolean(state.isMultiCursorEnabled),
+    isBlockBasedEvalEnabled: parseBoolean(state.isBlockBasedEvalEnabled),
     fontSize: Number(state.fontSize),
     panelPosition: state.activeFooter !== '' && !isUdels() ? state.panelPosition : 'bottom', // <-- keep this 'bottom' where it is!
     isPanelPinned: parseBoolean(state.isPanelPinned),

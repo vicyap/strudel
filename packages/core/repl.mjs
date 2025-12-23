@@ -32,6 +32,7 @@ export function repl({
     pattern: undefined,
     miniLocations: [],
     widgets: [],
+    sliders: [],
     pending: false,
     started: false,
   };
@@ -70,11 +71,172 @@ export function repl({
   let allTransform;
   let eachTransform;
 
+  // Block-based evaluation state
+  let codeBlocks = {};
+  let lastActiveVisualizerLabel = null;
+  // Track which patterns belong to which blocks: { blockRange: [patternKeys] }
+  let blockPatterns = new Map();
+
+  // Helper function to collect properties from all code blocks (handles both labeled and anonymous blocks)
+  function collectFromBlocks(property) {
+    return Object.entries(codeBlocks).flatMap(([key, block]) => {
+      if (key === '$') {
+        // Anonymous blocks are stored as an array of block objects
+        return Array.isArray(block) ? block.flatMap((b) => b[property] || []) : [];
+      }
+      // Labeled blocks are stored as single block objects
+      return block[property] || [];
+    });
+  }
+
+  // Helper function to process a single labeled block
+  function processLabeledBlock(labels, i, code, options, meta) {
+    const label = labels[i];
+    const nextLabel = labels[i + 1] || { index: code.length, end: code.length };
+
+    const labelCode = code.slice(label.index, nextLabel.index);
+    const labelRange = [label.index + options.range[0], label.end + options.range[0]];
+
+    // Calculate the full block range (from label start to next label start)
+    const blockStart = label.index + options.range[0];
+    const blockEnd = nextLabel.index + options.range[0];
+
+    const blockWidgets = (meta?.widgets || []).filter((widget) => {
+      const widgetPos = widget.from ?? widget.index ?? 0;
+      return widgetPos >= blockStart && widgetPos < blockEnd;
+    });
+
+    const blockSliders = (meta?.sliders || []).filter((slider) => {
+      const sliderPos = slider.from ?? slider.index ?? 0;
+      return sliderPos >= blockStart && sliderPos < blockEnd;
+    });
+
+    const blockMiniLocations = (meta?.miniLocations || []).filter((loc) => {
+      // const locStart = loc.start ?? loc.from ?? 0;
+      // mini locations can be either [start, end] arrays or objects with start/from
+      const locStart = Array.isArray(loc) ? loc[0] : (loc.start ?? loc.from ?? 0);
+      return locStart >= blockStart && locStart < blockEnd;
+    });
+
+    handleSingleLabelBlock(
+      label,
+      labelCode,
+      { ...options, range: labelRange },
+      { widgets: blockWidgets, sliders: blockSliders, miniLocations: blockMiniLocations },
+    );
+  }
+
+  // // Helper function to filter meta (widgets, sliders, miniLocations) by block range
+  // function splitCodeByRange(meta, blockStart, blockEnd) {
+  // }
+
+  // Helper function to extract labels from code with their positions
+  function extractLabelsFromCode(code) {
+    const labels = [];
+    // Regex to find label patterns like "d1:" or "myLabel:"
+    const labelRegex = /^(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:)/gm;
+    let match;
+    while ((match = labelRegex.exec(code)) !== null) {
+      labels.push({
+        name: match[2],
+        index: match.index,
+        end: match.index + match[1].length,
+        fullMatch: match[1],
+      });
+    }
+
+    // Also check for 'all()' and treat it as a special label
+    // just for management purposes
+    const allRegex = /all\s*\(\s*([^)]+)\s*\)/;
+    const allMatch = allRegex.exec(code);
+    if (allMatch) {
+      // Check if the argument contains a widget call
+      const argCode = allMatch[1];
+      const activeVisualizer = detectActiveVisualizer(argCode);
+
+      labels.push({
+        name: 'all',
+        index: allMatch.index,
+        end: allMatch.index + allMatch[0].length,
+        fullMatch: allMatch[0],
+        activeVisualizer: activeVisualizer,
+      });
+    }
+
+    return labels;
+  }
+
+  // Helper function to detect non-inline widget calls in code
+  function detectActiveVisualizer(code) {
+    // List of non-inline widgets that need cleanup
+    // These are Pattern.prototype methods that create persistent visualizations
+    // I don't like this approach, feels hacky, but since these methods don't create ids that
+    // can be read through the transpiler, I'm not sure how best to detect them.
+    // Would probably be better to register these methods through some function that would 
+    // tag them better
+    const nonInlineWidgets = ['punchcard', 'spiral', 'scope', 'pitchwheel', 'spectrum', 'pianoroll', 'wordfall',];
+
+    for (const widget of nonInlineWidgets) {
+      const widgetRegex = new RegExp(`\\.${widget}\\s*\\(`);
+      if (widgetRegex.test(code)) {
+        return widget;
+      }
+    }
+    return null;
+  }
+
+  // Helper function to handle single label code block storage
+  function handleSingleLabelBlock(label, code, options, meta) {
+
+    // Detect if this block contains a non-inline widget
+    // For 'all' label, widget info is already on the label object from extractLabelsFromCode
+
+    // As mentioned in detectActiveVisualizer, this is a bad approach to 
+    // managing non-inline widgets (or widgets that don't have ids)
+    // and a proper solution would give them widgets in the transpiler, or at least
+    // track where they are so we don't have to futz around with regexes
+    const activeVisualizer = label.activeVisualizer !== undefined
+      ? label.activeVisualizer
+      : detectActiveVisualizer(code);
+
+    if (activeVisualizer !== null) {
+      lastActiveVisualizerLabel = label.name;
+    }
+
+    // Store the entire code block under the label name
+    codeBlocks[label.name] = {
+      code: code,
+      range: options.range,
+      labels: [label.name],
+      miniLocations: meta?.miniLocations || [],
+      widgets: meta?.widgets || [],
+      sliders: meta?.sliders || [],
+      activeVisualizer: activeVisualizer, // Store the widget type if present, null otherwise
+    };
+
+
+    // Clean up any blocks with conflicting ranges
+    for (const [existingKey, existingBlock] of Object.entries(codeBlocks)) {
+      if (existingKey !== label.name && existingBlock.range && options.range) {
+        const [existingStart, existingEnd] = existingBlock.range;
+        const [newStart, newEnd] = options.range;
+
+        // If ranges overlap (not just touch), remove the stale block
+        if (!(newEnd <= existingStart || newStart >= existingEnd)) {
+          delete codeBlocks[existingKey];
+        }
+      }
+    }
+  }
+
   const hush = function () {
     pPatterns = {};
     anonymousIndex = 0;
     allTransform = undefined;
     eachTransform = undefined;
+    codeBlocks = {};
+    blockPatterns.clear();
+    lastActiveVisualizerLabel = null; // Reset 'all' visualizer tracking
     return silence;
   };
 
@@ -93,7 +255,18 @@ export function repl({
   };
   setTime(() => scheduler.now()); // TODO: refactor?
 
-  const stop = () => scheduler.stop();
+  const stop = () => {
+    codeBlocks = {};
+    blockPatterns.clear();
+    pPatterns = {};
+    lastActiveVisualizerLabel = null; // Reset 'all' visualizer tracking
+    updateState({
+      miniLocations: [],
+      widgets: [],
+      sliders: [],
+    });
+    scheduler.stop();
+  };
   const start = () => scheduler.start();
   const pause = () => scheduler.pause();
   const toggle = () => scheduler.toggle();
@@ -201,7 +374,7 @@ export function repl({
     });
   };
 
-  const evaluate = async (code, autostart = true, shouldHush = true) => {
+  const evaluate = async (code, autostart = true, shouldHush = true, blockBased = false, options = {}) => {
     if (!code) {
       throw new Error('no code to evaluate');
     }
@@ -209,15 +382,92 @@ export function repl({
       updateState({ code, pending: true });
       await injectPatternMethods();
       setTime(() => scheduler.now()); // TODO: refactor?
-      await beforeEval?.({ code });
+      await beforeEval?.({ code, blockBased });
       allTransforms = []; // reset all transforms
-      shouldHush && hush();
+
+      const transpilerOptionsWithBlock = {
+        ...transpilerOptions,
+        blockBased,
+        range: options.range || [],
+      };
+
+      if (!blockBased) {
+        codeBlocks = {};
+        shouldHush && hush();
+      }
 
       if (mondo) {
         code = `mondolang\`${code}\``;
       }
-      let { pattern, meta } = await _evaluate(code, transpiler, transpilerOptions);
-      if (Object.keys(pPatterns).length) {
+
+      let { pattern, meta } = await _evaluate(code, transpiler, transpilerOptionsWithBlock);
+
+      // Track activeVisualizer cleanup: check if any block's visualizer was removed
+      let widgetRemoved = false;
+
+      if (blockBased) {
+        const labels = extractLabelsFromCode(code);
+
+        // Store code blocks in dictionary using labels as keys
+        if (labels.length > 0) {
+          for (let i = 0; i < labels.length; i++) {
+            // processLabeledBlock(labels, i, code, options, meta);
+            // processing transpiler output instead of code is simply to avoid 
+            // extra regex in detecting whether or not an inline widget has been commented out
+            processLabeledBlock(labels, i, meta.output, options, meta);
+          }
+        } else if (pattern !== silence) {
+          // variable/function declarations that return silence are allowed,
+          // but anonymous pattern blocks pose an issue for block-based evaluation
+          // if an anonymous pattern is evaluated multiple times it will just stack and get louder and louder
+
+          // it's very common for users to write code prefixed with '$'
+          // but to modify and override existing patterns, the patterns must be labeled,
+          // otherwise we'll have no idea of which pattern is being overridden
+
+          // (we probably need to update the docs on this)
+
+          // we could easily enable it, but it would confuse a lot of people
+          throw new Error(
+            'anonymous labels disabled for block based evaluation (see https://strudel.cc/blog/#label-notation)',
+          );
+        }
+
+        // For block-based evaluation, collect from all blocks
+        // The highlight/widget/slider systems will handle selective updates based on the range
+        meta.miniLocations = collectFromBlocks('miniLocations');
+        meta.widgets = collectFromBlocks('widgets');
+        meta.sliders = collectFromBlocks('sliders');
+
+        // Track activeVisualizer cleanup: check if any block's visualizer was removed
+        const blocksToUpdate = labels.map((label) => label.name);
+
+        for (const [key, block] of Object.entries(codeBlocks)) {
+          if (blocksToUpdate.includes(key)) {
+            // This block was just updated
+            if (block.activeVisualizer !== null) {
+              // Block now has a visualizer, update tracking
+              lastActiveVisualizerLabel = key;
+            } else if (lastActiveVisualizerLabel === key) {
+              // This block lost its visualizer, trigger cleanup
+              widgetRemoved = true;
+              lastActiveVisualizerLabel = null;
+            }
+          }
+        }
+      }
+
+      const allPatterns = Object.values(pPatterns);
+
+      if (blockBased) {
+        pPatterns = Object.fromEntries(
+          Object.entries(pPatterns).filter(([key]) => {
+            return Object.keys(codeBlocks).includes(key);
+          }),
+        );
+      }
+
+      if (allPatterns.length) {
         let patterns = [];
         let soloActive = false;
         for (const [key, value] of Object.entries(pPatterns)) {
@@ -250,18 +500,22 @@ export function repl({
       if (!isPattern(pattern)) {
         pattern = silence;
       }
+
       logger(`[eval] code updated`);
       pattern = await setPattern(pattern, autostart);
       updateState({
         miniLocations: meta?.miniLocations || [],
         widgets: meta?.widgets || [],
+        sliders: meta?.sliders || [],
         activeCode: code,
         pattern,
         evalError: undefined,
         schedulerError: undefined,
         pending: false,
       });
-      afterEval?.({ code, pattern, meta });
+
+
+      afterEval?.({ code, pattern, meta, range: options.range, widgetRemoved });
       return pattern;
     } catch (err) {
       logger(`[eval] error: ${err.message}`, 'error');
@@ -276,18 +530,18 @@ export function repl({
 
 export const getTrigger =
   ({ getTime, defaultOutput }) =>
-  async (hap, deadline, duration, cps, t) => {
-    //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
-    // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
-    try {
-      if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
-        await defaultOutput(hap, deadline, duration, cps, t);
+    async (hap, deadline, duration, cps, t) => {
+      //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
+      // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
+      try {
+        if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
+          await defaultOutput(hap, deadline, duration, cps, t);
+        }
+        if (hap.context.onTrigger) {
+          // call signature of output / onTrigger is different...
+          await hap.context.onTrigger(hap, getTime(), cps, t);
+        }
+      } catch (err) {
+        errorLogger(err, 'getTrigger');
       }
-      if (hap.context.onTrigger) {
-        // call signature of output / onTrigger is different...
-        await hap.context.onTrigger(hap, getTime(), cps, t);
-      }
-    } catch (err) {
-      errorLogger(err, 'getTrigger');
-    }
-  };
+    };
