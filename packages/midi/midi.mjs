@@ -482,6 +482,43 @@ const refs = {};
 const refsByChan = {};
 
 /**
+ *
+ * @param {string} input
+ * @param {number|undefined} chan
+ * @returns {Object}
+ */
+function getMidinState(input, chan) {
+  const initialDataRaw = localStorage.getItem(`strudel-midin-${input}-chan${chan !== undefined ? chan : 'all'}`);
+  if (!initialDataRaw) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(initialDataRaw);
+  } catch (err) {
+    console.warn(
+      `Failed to parse MIDI state from localStorage for input "${input}" and channel "${chan}"`,
+      initialDataRaw,
+      err,
+    );
+    return {};
+  }
+}
+
+/**
+ *
+ * @param {string} input
+ * @param {number|undefined} chan
+ * @param {number} cc
+ * @param {number} value
+ */
+function saveMidinState(input, chan, cc, value) {
+  const state = getMidinState(input, chan);
+  state[cc] = value;
+  localStorage.setItem(`strudel-midin-${input}-chan${chan !== undefined ? chan : 'all'}`, JSON.stringify(state));
+}
+
+/**
  * MIDI input: Opens a MIDI input port to receive MIDI control change messages.
  *
  * The output is a function that accepts a midi cc value to query as well as (optionally) a midi channel
@@ -524,10 +561,13 @@ export async function midin(input) {
   refs[input] ??= {};
   refsByChan[input] ??= {};
   const cc = (cc, chan) => {
+    const initialState = getMidinState(input, chan);
+    const initialValue = initialState[cc] || 0;
+
     if (chan !== undefined) {
-      return ref(() => refsByChan[input][cc]?.[chan] || 0);
+      return ref(() => refsByChan[input][cc]?.[chan] || initialValue);
     }
-    return ref(() => refs[input][cc] || 0);
+    return ref(() => refs[input][cc] || initialValue);
   };
 
   listeners[input] && device.removeListener('midimessage', listeners[input]);
@@ -539,6 +579,9 @@ export async function midin(input) {
     refsByChan[input][ccNum] ??= {};
     refsByChan[input][ccNum][chan] = scaled;
     refs[input][ccNum] = scaled;
+
+    saveMidinState(input, undefined, ccNum, scaled);
+    saveMidinState(input, chan, ccNum, scaled);
   };
   device.addListener('midimessage', listeners[input]);
   return cc;
