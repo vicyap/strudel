@@ -477,43 +477,6 @@ Pattern.prototype.midi = function (midiport, options = {}) {
   });
 };
 
-/**
- *
- * @param {string} input
- * @param {number|undefined} chan
- * @returns {Object}
- */
-function getMidinState(input, chan) {
-  const initialDataRaw = localStorage.getItem(`strudel-midin-${input}-chan${chan !== undefined ? chan : 'all'}`);
-  if (!initialDataRaw) {
-    return {};
-  }
-
-  try {
-    return JSON.parse(initialDataRaw);
-  } catch (err) {
-    console.warn(
-      `Failed to parse MIDI state from localStorage for input "${input}" and channel "${chan}"`,
-      initialDataRaw,
-      err,
-    );
-    return {};
-  }
-}
-
-/**
- *
- * @param {string} input
- * @param {number|undefined} chan
- * @param {number} cc
- * @param {number} value
- */
-function saveMidinState(input, chan, cc, value) {
-  const state = getMidinState(input, chan);
-  state[cc] = value;
-  localStorage.setItem(`strudel-midin-${input}-chan${chan !== undefined ? chan : 'all'}`, JSON.stringify(state));
-}
-
 class MidiInput {
   /**
    *
@@ -528,7 +491,7 @@ class MidiInput {
     this._refsByChan = {};
 
     this.cc = (cc, chan) => {
-      const initialState = getMidinState(this.name, chan);
+      const initialState = this._loadState(chan);
       const initialValue = initialState[cc] || 0;
 
       if (chan !== undefined) {
@@ -551,8 +514,32 @@ class MidiInput {
     this._refsByChan[ccNum] ??= {};
     this._refsByChan[ccNum][chan] = scaled;
 
-    saveMidinState(this.name, undefined, ccNum, scaled);
-    saveMidinState(this.name, chan, ccNum, scaled);
+    this._saveState(undefined, ccNum, scaled);
+    this._saveState(chan, ccNum, scaled);
+  }
+
+  _loadState(chan) {
+    const initialDataRaw = localStorage.getItem(`strudel-midin-${this.name}-chan${chan !== undefined ? chan : 'all'}`);
+    if (!initialDataRaw) {
+      return {};
+    }
+
+    try {
+      return JSON.parse(initialDataRaw);
+    } catch (err) {
+      console.warn(
+        `Failed to parse MIDI state from localStorage for input "${this.name}" and channel "${chan}"`,
+        initialDataRaw,
+        err,
+      );
+      return {};
+    }
+  }
+
+  _saveState(chan, cc, value) {
+    const state = this._loadState(chan);
+    state[cc] = value;
+    localStorage.setItem(`strudel-midin-${this.name}-chan${chan !== undefined ? chan : 'all'}`, JSON.stringify(state));
   }
 }
 
