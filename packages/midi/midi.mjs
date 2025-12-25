@@ -481,11 +481,18 @@ class MidiInput {
   /**
    *
    * @param {string | number} input MIDI device name or index defaulting to 0
-   * @param {WebMidi.MIDIInput | undefined} device MIDI input device instance (or empty to use as placeholder)
    */
-  constructor(device) {
+  constructor(input) {
+    const device = getDevice(input, WebMidi.inputs);
+    if (!device) {
+      throw new Error(
+        `midiin: device "${input}" not found.. connected devices: ${getMidiDeviceNamesString(WebMidi.inputs)}`,
+      );
+    }
+
     this.id = device.id;
     this.name = device.name;
+    this.device = device;
 
     this._refs = {};
     this._refsByChan = {};
@@ -572,15 +579,10 @@ export async function midin(input) {
     );
   }
   const initial = await enableWebMidi(); // only returns on first init
-  const device = getDevice(input, WebMidi.inputs);
-  if (!device) {
-    throw new Error(
-      `midiin: device "${input}" not found.. connected devices: ${getMidiDeviceNamesString(WebMidi.inputs)}`,
-    );
-  }
 
-  const instance = midiInputs[device.id] || new MidiInput(device);
-  midiInputs[device.id] = instance;
+  const instance = midiInputs[input] || new MidiInput(input);
+  midiInputs[input] = instance;
+  const device = instance.device;
 
   if (initial) {
     const otherInputs = WebMidi.inputs.filter((o) => o.name !== device.name);
