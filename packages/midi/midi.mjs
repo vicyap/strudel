@@ -499,13 +499,16 @@ class MidiInput {
 
     const midiListener = this._onMidiMessage.bind(this);
     device.addListener('midimessage', midiListener);
+
+    this._loadAllStates();
+
+    const output = WebMidi.outputs.find((o) => o.name === this.name);
+    if (output) {
+      this._sendAllStates(output);
+    }
   }
 
   createCC(cc, chan) {
-    if (chan !== undefined && !(chan in this._refsByChan)) {
-      this._refsByChan[chan] = {};
-    }
-
     const lookupMap = chan === undefined ? this._refs : this._refsByChan[chan];
     if (!(cc in lookupMap)) {
       const initialState = this._loadState(chan);
@@ -527,6 +530,15 @@ class MidiInput {
 
     this._saveState(undefined, ccNum, scaled);
     this._saveState(chan, ccNum, scaled);
+  }
+
+  _loadAllStates() {
+    Object.assign(this._refs, this._loadState(undefined));
+
+    for (let chan = 1; chan <= 16; chan++) {
+      this._refsByChan[chan] ??= {};
+      Object.assign(this._refsByChan[chan], this._loadState(chan));
+    }
   }
 
   _loadState(chan) {
@@ -551,6 +563,17 @@ class MidiInput {
     const state = this._loadState(chan);
     state[cc] = value;
     localStorage.setItem(`strudel-midin-${this.name}-chan${chan !== undefined ? chan : 'all'}`, JSON.stringify(state));
+  }
+
+  _sendAllStates(output) {
+    for (const [chan, refs] of Object.entries(this._refsByChan)) {
+      const channel = Number(chan);
+      for (const [cc, value] of Object.entries(refs)) {
+        const ccn = Number(cc);
+        const scaled = Math.round(value * 127);
+        output.sendControlChange(ccn, scaled, channel);
+      }
+    }
   }
 }
 
