@@ -497,18 +497,22 @@ class MidiInput {
     this._refs = {};
     this._refsByChan = {};
 
-    this.cc = (cc, chan) => {
-      const initialState = this._loadState(chan);
-      const initialValue = initialState[cc] || 0;
-
-      if (chan !== undefined) {
-        return ref(() => this._refsByChan[cc]?.[chan] || initialValue);
-      }
-      return ref(() => this._refs[cc] || initialValue);
-    };
-
     const midiListener = this._onMidiMessage.bind(this);
     device.addListener('midimessage', midiListener);
+  }
+
+  createCC(cc, chan) {
+    if (chan !== undefined && !(chan in this._refsByChan)) {
+      this._refsByChan[chan] = {};
+    }
+
+    const lookupMap = chan === undefined ? this._refs : this._refsByChan[chan];
+    if (!(cc in lookupMap)) {
+      const initialState = this._loadState(chan);
+      lookupMap[cc] = initialState[cc] || 0;
+    }
+
+    return ref(() => lookupMap[cc]);
   }
 
   _onMidiMessage(e) {
@@ -593,5 +597,5 @@ export async function midin(input) {
     );
   }
 
-  return instance.cc;
+  return instance.createCC.bind(instance);
 }
