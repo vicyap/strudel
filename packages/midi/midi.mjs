@@ -477,10 +477,6 @@ Pattern.prototype.midi = function (midiport, options = {}) {
   });
 };
 
-let listeners = {};
-const refs = {};
-const refsByChan = {};
-
 /**
  *
  * @param {string} input
@@ -518,6 +514,51 @@ function saveMidinState(input, chan, cc, value) {
   localStorage.setItem(`strudel-midin-${input}-chan${chan !== undefined ? chan : 'all'}`, JSON.stringify(state));
 }
 
+class MidiInput {
+  /**
+   *
+   * @param {string | number} input MIDI device name or index defaulting to 0
+   * @param {WebMidi.MIDIInput | undefined} device MIDI input device instance (or empty to use as placeholder)
+   */
+  constructor(device) {
+    this.id = device.id;
+    this.name = device.name;
+
+    this._refs = {};
+    this._refsByChan = {};
+
+    this.cc = (cc, chan) => {
+      const initialState = getMidinState(this.name, chan);
+      const initialValue = initialState[cc] || 0;
+
+      if (chan !== undefined) {
+        return ref(() => this._refsByChan[cc]?.[chan] || initialValue);
+      }
+      return ref(() => this._refs[cc] || initialValue);
+    };
+
+    const midiListener = this._onMidiMessage.bind(this);
+    device.addListener('midimessage', midiListener);
+  }
+
+  _onMidiMessage(e) {
+    const ccNum = e.dataBytes[0];
+    const v = e.dataBytes[1];
+    const chan = e.message.channel;
+    const scaled = v / 127;
+
+    this._refs[ccNum] = scaled;
+    this._refsByChan[ccNum] ??= {};
+    this._refsByChan[ccNum][chan] = scaled;
+
+    saveMidinState(this.name, undefined, ccNum, scaled);
+    saveMidinState(this.name, chan, ccNum, scaled);
+  }
+}
+
+// MIDI input wrappers, by device ID
+const midiInputs = {};
+
 /**
  * MIDI input: Opens a MIDI input port to receive MIDI control change messages.
  *
@@ -550,6 +591,10 @@ export async function midin(input) {
       `midiin: device "${input}" not found.. connected devices: ${getMidiDeviceNamesString(WebMidi.inputs)}`,
     );
   }
+
+  const instance = midiInputs[device.id] || new MidiInput(device);
+  midiInputs[device.id] = instance;
+
   if (initial) {
     const otherInputs = WebMidi.inputs.filter((o) => o.name !== device.name);
     logger(
@@ -558,31 +603,6 @@ export async function midin(input) {
       }`,
     );
   }
-  refs[input] ??= {};
-  refsByChan[input] ??= {};
-  const cc = (cc, chan) => {
-    const initialState = getMidinState(input, chan);
-    const initialValue = initialState[cc] || 0;
 
-    if (chan !== undefined) {
-      return ref(() => refsByChan[input][cc]?.[chan] || initialValue);
-    }
-    return ref(() => refs[input][cc] || initialValue);
-  };
-
-  listeners[input] && device.removeListener('midimessage', listeners[input]);
-  listeners[input] = (e) => {
-    const ccNum = e.dataBytes[0];
-    const v = e.dataBytes[1];
-    const chan = e.message.channel;
-    const scaled = v / 127;
-    refsByChan[input][ccNum] ??= {};
-    refsByChan[input][ccNum][chan] = scaled;
-    refs[input][ccNum] = scaled;
-
-    saveMidinState(input, undefined, ccNum, scaled);
-    saveMidinState(input, chan, ccNum, scaled);
-  };
-  device.addListener('midimessage', listeners[input]);
-  return cc;
+  return instance.cc;
 }
