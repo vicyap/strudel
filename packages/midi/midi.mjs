@@ -483,14 +483,14 @@ class MidiInput {
    * @param {string | number} input MIDI device name or index defaulting to 0
    */
   constructor(input) {
+    this.stateKey = typeof input === 'string' ? input : undefined;
+
     const device = getDevice(input, WebMidi.inputs);
     if (!device) {
       throw new Error(
         `midiin: device "${input}" not found.. connected devices: ${getMidiDeviceNamesString(WebMidi.inputs)}`,
       );
     }
-
-    this.name = device.name;
 
     this._refs = {};
     this._refsByChan = {};
@@ -540,7 +540,13 @@ class MidiInput {
   }
 
   _loadState(chan) {
-    const initialDataRaw = localStorage.getItem(`strudel-midin-${this.name}-chan${chan !== undefined ? chan : 'all'}`);
+    if (!this.stateKey) {
+      return {};
+    }
+
+    const initialDataRaw = localStorage.getItem(
+      `strudel-midin-${this.stateKey}-chan${chan !== undefined ? chan : 'all'}`,
+    );
     if (!initialDataRaw) {
       return {};
     }
@@ -549,7 +555,7 @@ class MidiInput {
       return JSON.parse(initialDataRaw);
     } catch (err) {
       console.warn(
-        `Failed to parse MIDI state from localStorage for input "${this.name}" and channel "${chan}"`,
+        `Failed to parse MIDI state from localStorage for input "${this.stateKey}" and channel "${chan}"`,
         initialDataRaw,
         err,
       );
@@ -558,9 +564,16 @@ class MidiInput {
   }
 
   _saveState(chan, cc, value) {
+    if (!this.stateKey) {
+      return;
+    }
+
     const state = this._loadState(chan);
     state[cc] = value;
-    localStorage.setItem(`strudel-midin-${this.name}-chan${chan !== undefined ? chan : 'all'}`, JSON.stringify(state));
+    localStorage.setItem(
+      `strudel-midin-${this.stateKey}-chan${chan !== undefined ? chan : 'all'}`,
+      JSON.stringify(state),
+    );
   }
 
   _sendAllStates(output) {
