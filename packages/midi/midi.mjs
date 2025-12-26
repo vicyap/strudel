@@ -5,20 +5,18 @@ This program is free software: you can redistribute it and/or modify it under th
 */
 
 import * as _WebMidi from 'webmidi';
-import { Pattern, isPattern, logger, ref } from '@strudel/core';
+import { Pattern, isPattern, logger } from '@strudel/core';
 import { noteToMidi, getControlName } from '@strudel/core';
 import { Note } from 'webmidi';
 import { scheduleAtTime } from '../superdough/helpers.mjs';
+import { getMidiDeviceNamesString, getDevice } from './util.mjs';
+import { MidiInput } from './input.mjs';
 
 // if you use WebMidi from outside of this package, make sure to import that instance:
 export const { WebMidi } = _WebMidi;
 
 function supportsMidi() {
   return typeof navigator.requestMIDIAccess === 'function';
-}
-
-function getMidiDeviceNamesString(devices) {
-  return devices.map((o) => `'${o.name}'`).join(' | ');
 }
 
 export function enableWebMidi(options = {}) {
@@ -56,27 +54,6 @@ export function enableWebMidi(options = {}) {
       { sysex: true },
     );
   });
-}
-
-function getDevice(indexOrName, devices) {
-  if (typeof indexOrName === 'number') {
-    return devices[indexOrName];
-  }
-  const byName = (name) => devices.find((output) => output.name.includes(name));
-  if (typeof indexOrName === 'string') {
-    return byName(indexOrName);
-  }
-  // attempt to default to first IAC device if none is specified
-  const IACOutput = byName('IAC');
-  const device = IACOutput ?? devices[0];
-  if (!device) {
-    if (!devices.length) {
-      throw new Error(`🔌 No MIDI devices found. Connect a device or enable IAC Driver.`);
-    }
-    throw new Error(`🔌 Default MIDI device not found. Use one of ${getMidiDeviceNamesString(devices)}`);
-  }
-
-  return device;
 }
 
 // send start/stop messages to outputs when repl starts/stops
@@ -474,180 +451,6 @@ Pattern.prototype.midi = function (midiport, options = {}) {
     }
   });
 };
-
-class MidiInput {
-  /**
-   *
-   * @param {string | number} input MIDI device name or index defaulting to 0
-   */
-  constructor(input) {
-    this.input = input;
-    this.stateKey = typeof input === 'string' ? input : undefined;
-
-    this._refs = {};
-    this._refsByChan = {};
-
-    this._loadAllStates();
-
-    this.initialDevice = this._startDeviceListener();
-  }
-
-  createCC(cc, chan) {
-    const lookupMap = chan === undefined ? this._refs : this._refsByChan[chan];
-    if (!(cc in lookupMap)) {
-      const initialState = this._loadState(chan);
-      lookupMap[cc] = initialState[cc] || 0;
-    }
-
-    return ref(() => lookupMap[cc]);
-  }
-
-  _startDeviceListener() {
-    const initialDevice = getDevice(this.input, WebMidi.inputs);
-    if (!initialDevice) {
-      console.warn(`midiin: device "${this.input}" not found`);
-    }
-
-    // Background connection loop
-    (async () => {
-      const midiListener = this._onMidiMessage.bind(this);
-      let device = initialDevice;
-
-      while (true) {
-        if (!device) {
-          device = await this._waitForDevice();
-        }
-
-        console.log('midiin: device connected:', device.name);
-
-        // Wait a bit for device to be ready to receive last state
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        try {
-          // Still continue if sending did not work
-          this._sendAllStates(device);
-        } catch (err) {
-          console.error('midiin: failed to send last state on connect:', device.name, err);
-        }
-
-        // Listen for incoming MIDI messages and for disconnection
-        device.addListener('midimessage', midiListener);
-
-        await this._waitForDeviceDisconnect(device);
-
-        console.warn('midiin: device disconnected:', device.name);
-        device.removeListener('midimessage', midiListener);
-
-        device = null; // Clear var to trigger wait for connection
-      }
-    })();
-
-    return initialDevice;
-  }
-
-  _waitForDevice() {
-    return new Promise((resolve) => {
-      const connListener = () => {
-        const device = getDevice(this.input, WebMidi.inputs);
-        if (device) {
-          WebMidi.removeListener('connected', connListener);
-          resolve(device);
-        }
-      };
-
-      WebMidi.addListener('connected', connListener);
-    });
-  }
-
-  _waitForDeviceDisconnect(device) {
-    return new Promise((resolve) => {
-      const disconnListener = (e) => {
-        if (e.port.name === device.name) {
-          WebMidi.removeListener('disconnected', disconnListener);
-          resolve();
-        }
-      };
-
-      WebMidi.addListener('disconnected', disconnListener);
-    });
-  }
-
-  _onMidiMessage(e) {
-    const ccNum = e.dataBytes[0];
-    const v = e.dataBytes[1];
-    const chan = e.message.channel;
-    const scaled = v / 127;
-
-    this._refs[ccNum] = scaled;
-    this._refsByChan[ccNum] ??= {};
-    this._refsByChan[ccNum][chan] = scaled;
-
-    this._saveState(undefined, ccNum, scaled);
-    this._saveState(chan, ccNum, scaled);
-  }
-
-  _loadAllStates() {
-    Object.assign(this._refs, this._loadState(undefined));
-
-    for (let chan = 1; chan <= 16; chan++) {
-      this._refsByChan[chan] ??= {};
-      Object.assign(this._refsByChan[chan], this._loadState(chan));
-    }
-  }
-
-  _loadState(chan) {
-    if (!this.stateKey) {
-      return {};
-    }
-
-    const initialDataRaw = localStorage.getItem(
-      `strudel-midin-${this.stateKey}-chan${chan !== undefined ? chan : 'all'}`,
-    );
-    if (!initialDataRaw) {
-      return {};
-    }
-
-    try {
-      return JSON.parse(initialDataRaw);
-    } catch (err) {
-      console.warn(
-        `Failed to parse MIDI state from localStorage for input "${this.stateKey}" and channel "${chan}"`,
-        initialDataRaw,
-        err,
-      );
-      return {};
-    }
-  }
-
-  _saveState(chan, cc, value) {
-    if (!this.stateKey) {
-      return;
-    }
-
-    const state = this._loadState(chan);
-    state[cc] = value;
-    localStorage.setItem(
-      `strudel-midin-${this.stateKey}-chan${chan !== undefined ? chan : 'all'}`,
-      JSON.stringify(state),
-    );
-  }
-
-  _sendAllStates(device) {
-    const output = WebMidi.outputs.find((o) => o.name === device.name);
-    if (!output) {
-      return;
-    }
-
-    for (const [chan, refs] of Object.entries(this._refsByChan)) {
-      const channel = Number(chan);
-      for (const [cc, value] of Object.entries(refs)) {
-        const ccn = Number(cc);
-        const scaled = Math.round(value * 127);
-        output.sendControlChange(ccn, scaled, channel);
-      }
-    }
-  }
-}
 
 // MIDI input wrappers, by specified input string/index
 const midiInputs = {};
