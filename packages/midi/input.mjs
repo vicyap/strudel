@@ -5,7 +5,7 @@ This program is free software: you can redistribute it and/or modify it under th
 */
 
 import { WebMidi } from 'webmidi';
-import { ref } from '@strudel/core';
+import { logger, ref } from '@strudel/core';
 import { getDevice } from './util.mjs';
 
 export class MidiInput {
@@ -15,7 +15,7 @@ export class MidiInput {
    */
   constructor(input) {
     this.input = input;
-    this.stateKey = typeof input === 'string' ? input : undefined;
+    this.stateKey = typeof input === 'string' ? input : undefined; // Saved state is not tracked for numeric index inputs
 
     this._refs = {};
     this._refsByChan = {};
@@ -37,9 +37,6 @@ export class MidiInput {
 
   _startDeviceListener() {
     const initialDevice = getDevice(this.input, WebMidi.inputs);
-    if (!initialDevice) {
-      console.warn(`midiin: device "${this.input}" not found`);
-    }
 
     // Background connection loop
     (async () => {
@@ -50,8 +47,6 @@ export class MidiInput {
         if (!device) {
           device = await this._waitForDevice();
         }
-
-        console.log('midiin: device connected:', device.name);
 
         // Wait a bit for device to be ready to receive last state
         await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -68,9 +63,7 @@ export class MidiInput {
 
         await this._waitForDeviceDisconnect(device);
 
-        console.warn('midiin: device disconnected:', device.name);
         device.removeListener('midimessage', midiListener);
-
         device = null; // Clear var to trigger wait for connection
       }
     })();
@@ -83,6 +76,8 @@ export class MidiInput {
       const connListener = () => {
         const device = getDevice(this.input, WebMidi.inputs);
         if (device) {
+          logger(`[midi] device reconnected: ${device.name}`);
+
           WebMidi.removeListener('connected', connListener);
           resolve(device);
         }
@@ -96,6 +91,8 @@ export class MidiInput {
     return new Promise((resolve) => {
       const disconnListener = (e) => {
         if (e.port.name === device.name) {
+          logger(`[midi] device disconnected: ${device.name}`);
+
           WebMidi.removeListener('disconnected', disconnListener);
           resolve();
         }
