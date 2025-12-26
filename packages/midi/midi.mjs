@@ -59,9 +59,6 @@ export function enableWebMidi(options = {}) {
 }
 
 function getDevice(indexOrName, devices) {
-  if (!devices.length) {
-    throw new Error(`🔌 No MIDI devices found. Connect a device or enable IAC Driver.`);
-  }
   if (typeof indexOrName === 'number') {
     return devices[indexOrName];
   }
@@ -73,12 +70,13 @@ function getDevice(indexOrName, devices) {
   const IACOutput = byName('IAC');
   const device = IACOutput ?? devices[0];
   if (!device) {
-    throw new Error(
-      `🔌 MIDI device '${device ? device : ''}' not found. Use one of ${getMidiDeviceNamesString(devices)}`,
-    );
+    if (!devices.length) {
+      throw new Error(`🔌 No MIDI devices found. Connect a device or enable IAC Driver.`);
+    }
+    throw new Error(`🔌 Default MIDI device not found. Use one of ${getMidiDeviceNamesString(devices)}`);
   }
 
-  return IACOutput ?? devices[0];
+  return device;
 }
 
 // send start/stop messages to outputs when repl starts/stops
@@ -483,27 +481,15 @@ class MidiInput {
    * @param {string | number} input MIDI device name or index defaulting to 0
    */
   constructor(input) {
+    this.input = input;
     this.stateKey = typeof input === 'string' ? input : undefined;
-
-    const device = getDevice(input, WebMidi.inputs);
-    if (!device) {
-      throw new Error(
-        `midiin: device "${input}" not found.. connected devices: ${getMidiDeviceNamesString(WebMidi.inputs)}`,
-      );
-    }
 
     this._refs = {};
     this._refsByChan = {};
 
-    const midiListener = this._onMidiMessage.bind(this);
-    device.addListener('midimessage', midiListener);
-
     this._loadAllStates();
 
-    const output = WebMidi.outputs.find((o) => o.name === device.name);
-    if (output) {
-      this._sendAllStates(output);
-    }
+    this.initialDevice = this._startDeviceListener();
   }
 
   createCC(cc, chan) {
@@ -514,6 +500,71 @@ class MidiInput {
     }
 
     return ref(() => lookupMap[cc]);
+  }
+
+  _startDeviceListener() {
+    const initialDevice = getDevice(this.input, WebMidi.inputs);
+    if (!initialDevice) {
+      console.warn(`midiin: device "${this.input}" not found`);
+    }
+
+    // Background connection loop
+    (async () => {
+      const midiListener = this._onMidiMessage.bind(this);
+      let device = initialDevice;
+
+      while (true) {
+        if (!device) {
+          device = await this._waitForDevice();
+        }
+
+        console.log('midiin: device connected:', device.name);
+
+        // Wait a bit for device to be ready to receive last state
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+
+        try {
+          const output = WebMidi.outputs.find((o) => o.name === device.name);
+          if (output) {
+            this._sendAllStates(output);
+          }
+        } catch (err) {
+          console.error('midiin: failed to send last state on connect:', device.name, err);
+        }
+
+        // Listen for incoming MIDI messages and for disconnection
+        device.addListener('midimessage', midiListener);
+
+        await new Promise((resolve) => {
+          const disconnectListener = (e) => {
+            if (e.port.name === device.name) {
+              console.warn('midiin: device disconnected:', device.name);
+              WebMidi.removeListener('disconnected', disconnectListener);
+              resolve();
+            }
+          };
+          WebMidi.addListener('disconnected', disconnectListener);
+        });
+
+        device = null; // Clear var to trigger wait for connection
+      }
+    })();
+
+    return initialDevice;
+  }
+
+  _waitForDevice() {
+    return new Promise((resolve) => {
+      const connListener = () => {
+        const device = getDevice(this.input, WebMidi.inputs);
+        if (device) {
+          WebMidi.removeListener('connected', connListener);
+          resolve(device);
+        }
+      };
+
+      WebMidi.addListener('connected', connListener);
+    });
   }
 
   _onMidiMessage(e) {
@@ -622,11 +673,15 @@ export async function midin(input) {
   midiInputs[input] = instance;
 
   if (initial) {
-    const otherInputs = WebMidi.inputs.filter((o) => o.name !== instance.name);
+    const device = instance.initialDevice;
+
+    const otherInputs = WebMidi.inputs.filter((o) => o.name !== device.name);
     logger(
-      `Midi enabled! Using "${instance.name}". ${
-        otherInputs?.length ? `Also available: ${getMidiDeviceNamesString(otherInputs)}` : ''
-      }`,
+      device
+        ? `Midi enabled! Using "${device.name}". ${
+            otherInputs?.length ? `Also available: ${getMidiDeviceNamesString(otherInputs)}` : ''
+          }`
+        : `Midi enabled! Waiting for device "${input}"... Currently connected devices: ${getMidiDeviceNamesString(WebMidi.inputs)}`,
     );
   }
 
