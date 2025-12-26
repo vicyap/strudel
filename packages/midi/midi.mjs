@@ -490,9 +490,7 @@ class MidiInput {
       );
     }
 
-    this.id = device.id;
     this.name = device.name;
-    this.device = device;
 
     this._refs = {};
     this._refsByChan = {};
@@ -502,7 +500,7 @@ class MidiInput {
 
     this._loadAllStates();
 
-    const output = WebMidi.outputs.find((o) => o.name === this.name);
+    const output = WebMidi.outputs.find((o) => o.name === device.name);
     if (output) {
       this._sendAllStates(output);
     }
@@ -577,7 +575,7 @@ class MidiInput {
   }
 }
 
-// MIDI input wrappers, by device ID
+// MIDI input wrappers, by specified input string/index
 const midiInputs = {};
 
 /**
@@ -609,12 +607,11 @@ export async function midin(input) {
 
   const instance = midiInputs[input] || new MidiInput(input);
   midiInputs[input] = instance;
-  const device = instance.device;
 
   if (initial) {
-    const otherInputs = WebMidi.inputs.filter((o) => o.name !== device.name);
+    const otherInputs = WebMidi.inputs.filter((o) => o.name !== instance.name);
     logger(
-      `Midi enabled! Using "${device.name}". ${
+      `Midi enabled! Using "${instance.name}". ${
         otherInputs?.length ? `Also available: ${getMidiDeviceNamesString(otherInputs)}` : ''
       }`,
     );
