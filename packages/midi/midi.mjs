@@ -524,10 +524,8 @@ class MidiInput {
         await new Promise((resolve) => setTimeout(resolve, 2000));
 
         try {
-          const output = WebMidi.outputs.find((o) => o.name === device.name);
-          if (output) {
-            this._sendAllStates(output);
-          }
+          // Still continue if sending did not work
+          this._sendAllStates(device);
         } catch (err) {
           console.error('midiin: failed to send last state on connect:', device.name, err);
         }
@@ -535,16 +533,10 @@ class MidiInput {
         // Listen for incoming MIDI messages and for disconnection
         device.addListener('midimessage', midiListener);
 
-        await new Promise((resolve) => {
-          const disconnectListener = (e) => {
-            if (e.port.name === device.name) {
-              console.warn('midiin: device disconnected:', device.name);
-              WebMidi.removeListener('disconnected', disconnectListener);
-              resolve();
-            }
-          };
-          WebMidi.addListener('disconnected', disconnectListener);
-        });
+        await this._waitForDeviceDisconnect(device);
+
+        console.warn('midiin: device disconnected:', device.name);
+        device.removeListener('midimessage', midiListener);
 
         device = null; // Clear var to trigger wait for connection
       }
@@ -564,6 +556,19 @@ class MidiInput {
       };
 
       WebMidi.addListener('connected', connListener);
+    });
+  }
+
+  _waitForDeviceDisconnect(device) {
+    return new Promise((resolve) => {
+      const disconnListener = (e) => {
+        if (e.port.name === device.name) {
+          WebMidi.removeListener('disconnected', disconnListener);
+          resolve();
+        }
+      };
+
+      WebMidi.addListener('disconnected', disconnListener);
     });
   }
 
@@ -627,7 +632,12 @@ class MidiInput {
     );
   }
 
-  _sendAllStates(output) {
+  _sendAllStates(device) {
+    const output = WebMidi.outputs.find((o) => o.name === device.name);
+    if (!output) {
+      return;
+    }
+
     for (const [chan, refs] of Object.entries(this._refsByChan)) {
       const channel = Number(chan);
       for (const [cc, value] of Object.entries(refs)) {
