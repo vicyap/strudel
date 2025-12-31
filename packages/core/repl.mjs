@@ -187,6 +187,48 @@ export function repl({
   };
   setTime(() => scheduler.now()); // TODO: refactor?
 
+  // Helper function to apply pattern transformations (solo, each, all)
+  // this should be abstracted more
+  function applyPatternTransforms(pattern) {
+    const allPatterns = Object.values(pPatterns);
+
+    if (allPatterns.length) {
+      let patterns = [];
+      let soloActive = false;
+      for (const [key, value] of Object.entries(pPatterns)) {
+        // handle soloed patterns ex: S$: s("bd!4")
+        const isSolod = key.length > 1 && key.startsWith('S');
+        if (isSolod && soloActive === false) {
+          // first time we see a soloed pattern, clear existing patterns
+          patterns = [];
+          soloActive = true;
+        }
+        if (!soloActive || (soloActive && isSolod)) {
+          const valWithState = value.withState((state) => state.setControls({ id: key }));
+          patterns.push(valWithState);
+        }
+      }
+      if (eachTransform) {
+        // Explicit lambda so only element (not index and array) are passed
+        patterns = patterns.map((x) => eachTransform(x));
+      }
+      pattern = stack(...patterns);
+    } else if (eachTransform) {
+      pattern = eachTransform(pattern);
+    }
+    if (allTransforms.length) {
+      for (const transform of allTransforms) {
+        pattern = transform(pattern);
+      }
+    }
+
+    if (!isPattern(pattern)) {
+      pattern = silence;
+    }
+
+    return pattern;
+  }
+
   const stop = () => {
     codeBlocks = {};
     blockPatterns.clear();
@@ -306,7 +348,7 @@ export function repl({
     });
   };
 
-  const evaluate = async (code, autostart = true, blockBased = false, options = {}) => {
+  const evaluate = async (code, autostart = true) => {
     if (!code) {
       throw new Error('no code to evaluate');
     }
@@ -314,19 +356,59 @@ export function repl({
       updateState({ code, pending: true });
       await injectPatternMethods();
       setTime(() => scheduler.now()); // TODO: refactor?
-      await beforeEval?.({ code, blockBased });
+      await beforeEval?.({ code, blockBased: false });
+      allTransforms = []; // reset all transforms
+
+      codeBlocks = {};
+      hush();
+
+      if (mondo) {
+        code = `mondolang\`${code}\``;
+      }
+
+      let { pattern, meta } = await _evaluate(code, transpiler, transpilerOptions);
+
+      pattern = applyPatternTransforms(pattern);
+
+      logger(`[eval] code updated`);
+      pattern = await setPattern(pattern, autostart);
+      updateState({
+        miniLocations: meta?.miniLocations || [],
+        widgets: meta?.widgets || [],
+        sliders: meta?.sliders || [],
+        activeCode: code,
+        pattern,
+        evalError: undefined,
+        schedulerError: undefined,
+        pending: false,
+      });
+
+      afterEval?.({ code, pattern, meta, range: undefined, widgetRemoved: false });
+      return pattern;
+    } catch (err) {
+      logger(`[eval] error: ${err.message}`, 'error');
+      console.error(err);
+      updateState({ evalError: err, pending: false });
+      onEvalError?.(err);
+    }
+  };
+
+  const evaluateBlock = async (code, autostart = true, options = {}) => {
+    if (!code) {
+      throw new Error('no code to evaluate');
+    }
+    try {
+      updateState({ code, pending: true });
+      await injectPatternMethods();
+      setTime(() => scheduler.now()); // TODO: refactor?
+      await beforeEval?.({ code, blockBased: true });
       allTransforms = []; // reset all transforms
 
       const transpilerOptionsWithBlock = {
         ...transpilerOptions,
-        blockBased,
+        blockBased: true,
         range: options.range || [],
       };
-
-      if (!blockBased) {
-        codeBlocks = {};
-        hush();
-      }
 
       if (mondo) {
         code = `mondolang\`${code}\``;
@@ -337,101 +419,61 @@ export function repl({
       // Track activeVisualizer cleanup: check if any block's visualizer was removed
       let widgetRemoved = false;
 
-      if (blockBased) {
-        const labels = meta.labels || [];
+      const labels = meta.labels || [];
 
-        // Store code blocks in dictionary using labels as keys
-        if (labels.length > 0) {
-          for (let i = 0; i < labels.length; i++) {
-            // processLabeledBlock(labels, i, code, options, meta);
-            // processing transpiler output instead of code is simply to avoid
-            // extra regex in detecting whether or not an inline widget has been commented out
-            processLabeledBlock(labels, i, meta.output, options, meta);
-          }
-        } else if (pattern !== silence) {
-          // variable/function declarations that return silence are allowed,
-          // but anonymous pattern blocks pose an issue for block-based evaluation
-          // if an anonymous pattern is evaluated multiple times it will just stack and get louder and louder
-
-          // it's very common for users to write code prefixed with '$'
-          // but to modify and override existing patterns, the patterns must be labeled,
-          // otherwise we'll have no idea of which pattern is being overridden
-
-          // (we probably need to update the docs on this)
-
-          // we could easily enable it, but it would confuse a lot of people
-          throw new Error(
-            'anonymous labels disabled for block based evaluation (see https://strudel.cc/blog/#label-notation)',
-          );
+      // Store code blocks in dictionary using labels as keys
+      if (labels.length > 0) {
+        for (let i = 0; i < labels.length; i++) {
+          // processing transpiler output instead of code is simply to avoid
+          // extra regex in detecting whether or not an inline widget has been commented out
+          processLabeledBlock(labels, i, meta.output, options, meta);
         }
+      } else if (pattern !== silence) {
+        // variable/function declarations that return silence are allowed,
+        // but anonymous pattern blocks pose an issue for block-based evaluation
+        // if an anonymous pattern is evaluated multiple times it will just stack and get louder and louder
 
-        // For block-based evaluation, collect from all blocks
-        // The highlight/widget/slider systems will handle selective updates based on the range
-        meta.miniLocations = collectFromBlocks('miniLocations');
-        meta.widgets = collectFromBlocks('widgets');
-        meta.sliders = collectFromBlocks('sliders');
+        // it's very common for users to write code prefixed with '$'
+        // but to modify and override existing patterns, the patterns must be labeled,
+        // otherwise we'll have no idea of which pattern is being overridden
 
-        // Track activeVisualizer cleanup: check if any block's visualizer was removed
-        const blocksToUpdate = labels.map((label) => label.name);
+        // (we probably need to update the docs on this)
 
-        for (const [key, block] of Object.entries(codeBlocks)) {
-          if (blocksToUpdate.includes(key)) {
-            // This block was just updated
-            if (block.activeVisualizer !== null) {
-              // Block now has a visualizer, update tracking
-              lastActiveVisualizerLabel = key;
-            } else if (lastActiveVisualizerLabel === key) {
-              // This block lost its visualizer, trigger cleanup
-              widgetRemoved = true;
-              lastActiveVisualizerLabel = null;
-            }
-          }
-        }
-      }
-
-      const allPatterns = Object.values(pPatterns);
-
-      if (blockBased) {
-        pPatterns = Object.fromEntries(
-          Object.entries(pPatterns).filter(([key]) => {
-            return Object.keys(codeBlocks).includes(key);
-          }),
+        // we could easily enable it, but it would confuse a lot of people
+        throw new Error(
+          'anonymous labels disabled for block based evaluation (see https://strudel.cc/blog/#label-notation)',
         );
       }
 
-      if (allPatterns.length) {
-        let patterns = [];
-        let soloActive = false;
-        for (const [key, value] of Object.entries(pPatterns)) {
-          // handle soloed patterns ex: S$: s("bd!4")
-          const isSolod = key.length > 1 && key.startsWith('S');
-          if (isSolod && soloActive === false) {
-            // first time we see a soloed pattern, clear existing patterns
-            patterns = [];
-            soloActive = true;
+      meta.miniLocations = collectFromBlocks('miniLocations');
+      meta.widgets = collectFromBlocks('widgets');
+      meta.sliders = collectFromBlocks('sliders');
+
+      // Track activeVisualizer cleanup: check if any block's visualizer was removed
+      const blocksToUpdate = labels.map((label) => label.name);
+
+      // this is the hackiest bit
+      for (const [key, block] of Object.entries(codeBlocks)) {
+        if (blocksToUpdate.includes(key)) {
+          // This block was just updated
+          if (block.activeVisualizer !== null) {
+            // Block now has a visualizer, update tracking
+            lastActiveVisualizerLabel = key;
+          } else if (lastActiveVisualizerLabel === key) {
+            // This block lost its visualizer, trigger cleanup
+            widgetRemoved = true;
+            lastActiveVisualizerLabel = null;
           }
-          if (!soloActive || (soloActive && isSolod)) {
-            const valWithState = value.withState((state) => state.setControls({ id: key }));
-            patterns.push(valWithState);
-          }
-        }
-        if (eachTransform) {
-          // Explicit lambda so only element (not index and array) are passed
-          patterns = patterns.map((x) => eachTransform(x));
-        }
-        pattern = stack(...patterns);
-      } else if (eachTransform) {
-        pattern = eachTransform(pattern);
-      }
-      if (allTransforms.length) {
-        for (const transform of allTransforms) {
-          pattern = transform(pattern);
         }
       }
 
-      if (!isPattern(pattern)) {
-        pattern = silence;
-      }
+      pPatterns = Object.fromEntries(
+        Object.entries(pPatterns).filter(([key]) => {
+          return Object.keys(codeBlocks).includes(key);
+        }),
+      );
+
+      pattern = applyPatternTransforms(pattern);
 
       logger(`[eval] code updated`);
       pattern = await setPattern(pattern, autostart);
@@ -455,24 +497,25 @@ export function repl({
       onEvalError?.(err);
     }
   };
+
   const setCode = (code) => updateState({ code });
-  return { scheduler, evaluate, start, stop, pause, setCps, setPattern, setCode, toggle, state };
+  return { scheduler, evaluate, evaluateBlock, start, stop, pause, setCps, setPattern, setCode, toggle, state };
 }
 
 export const getTrigger =
   ({ getTime, defaultOutput }) =>
-    async (hap, deadline, duration, cps, t) => {
-      //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
-      // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
-      try {
-        if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
-          await defaultOutput(hap, deadline, duration, cps, t);
-        }
-        if (hap.context.onTrigger) {
-          // call signature of output / onTrigger is different...
-          await hap.context.onTrigger(hap, getTime(), cps, t);
-        }
-      } catch (err) {
-        errorLogger(err, 'getTrigger');
+  async (hap, deadline, duration, cps, t) => {
+    //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
+    // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
+    try {
+      if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
+        await defaultOutput(hap, deadline, duration, cps, t);
       }
-    };
+      if (hap.context.onTrigger) {
+        // call signature of output / onTrigger is different...
+        await hap.context.onTrigger(hap, getTime(), cps, t);
+      }
+    } catch (err) {
+      errorLogger(err, 'getTrigger');
+    }
+  };

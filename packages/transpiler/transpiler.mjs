@@ -172,7 +172,7 @@ export function transpiler(input, options = {}) {
         });
       }
     },
-    leave(node, parent, prop, index) { },
+    leave(node, parent, prop, index) {},
   });
 
   let { body } = ast;
