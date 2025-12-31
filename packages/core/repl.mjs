@@ -126,76 +126,11 @@ export function repl({
     );
   }
 
-  // // Helper function to filter meta (widgets, sliders, miniLocations) by block range
-  // function splitCodeByRange(meta, blockStart, blockEnd) {
-  // }
-
-  // Helper function to extract labels from code with their positions
-  function extractLabelsFromCode(code) {
-    const labels = [];
-    // Regex to find label patterns like "d1:" or "myLabel:"
-    const labelRegex = /^(\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:)/gm;
-    let match;
-    while ((match = labelRegex.exec(code)) !== null) {
-      labels.push({
-        name: match[2],
-        index: match.index,
-        end: match.index + match[1].length,
-        fullMatch: match[1],
-      });
-    }
-
-    // Also check for 'all()' and treat it as a special label
-    // just for management purposes
-    const allRegex = /all\s*\(\s*([^)]+)\s*\)/;
-    const allMatch = allRegex.exec(code);
-    if (allMatch) {
-      // Check if the argument contains a widget call
-      const argCode = allMatch[1];
-      const activeVisualizer = detectActiveVisualizer(argCode);
-
-      labels.push({
-        name: 'all',
-        index: allMatch.index,
-        end: allMatch.index + allMatch[0].length,
-        fullMatch: allMatch[0],
-        activeVisualizer: activeVisualizer,
-      });
-    }
-
-    return labels;
-  }
-
-  // Helper function to detect non-inline widget calls in code
-  function detectActiveVisualizer(code) {
-    // List of non-inline widgets that need cleanup
-    // These are Pattern.prototype methods that create persistent visualizations
-    // I don't like this approach, feels hacky, but since these methods don't create ids that
-    // can be read through the transpiler, I'm not sure how best to detect them.
-    // Would probably be better to register these methods through some function that would
-    // tag them better
-    const nonInlineWidgets = ['punchcard', 'spiral', 'scope', 'pitchwheel', 'spectrum', 'pianoroll', 'wordfall'];
-
-    for (const widget of nonInlineWidgets) {
-      const widgetRegex = new RegExp(`\\.${widget}\\s*\\(`);
-      if (widgetRegex.test(code)) {
-        return widget;
-      }
-    }
-    return null;
-  }
-
   // Helper function to handle single label code block storage
   function handleSingleLabelBlock(label, code, options, meta) {
     // Detect if this block contains a non-inline widget
-    // For 'all' label, widget info is already on the label object from extractLabelsFromCode
-
-    // As mentioned in detectActiveVisualizer, this is a bad approach to
-    // managing non-inline widgets (or widgets that don't have ids)
-    // and a proper solution would give them widgets in the transpiler, or at least
-    // track where they are so we don't have to futz around with regexes
-    const activeVisualizer =
-      label.activeVisualizer !== undefined ? label.activeVisualizer : detectActiveVisualizer(code);
+    // The activeVisualizer is now provided by the transpiler for all labels
+    const activeVisualizer = label.activeVisualizer || null;
 
     if (activeVisualizer !== null) {
       lastActiveVisualizerLabel = label.name;
@@ -371,7 +306,7 @@ export function repl({
     });
   };
 
-  const evaluate = async (code, autostart = true, shouldHush = true, blockBased = false, options = {}) => {
+  const evaluate = async (code, autostart = true, blockBased = false, options = {}) => {
     if (!code) {
       throw new Error('no code to evaluate');
     }
@@ -390,7 +325,7 @@ export function repl({
 
       if (!blockBased) {
         codeBlocks = {};
-        shouldHush && hush();
+        hush();
       }
 
       if (mondo) {
@@ -403,7 +338,7 @@ export function repl({
       let widgetRemoved = false;
 
       if (blockBased) {
-        const labels = extractLabelsFromCode(code);
+        const labels = meta.labels || [];
 
         // Store code blocks in dictionary using labels as keys
         if (labels.length > 0) {
@@ -526,18 +461,18 @@ export function repl({
 
 export const getTrigger =
   ({ getTime, defaultOutput }) =>
-  async (hap, deadline, duration, cps, t) => {
-    //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
-    // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
-    try {
-      if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
-        await defaultOutput(hap, deadline, duration, cps, t);
+    async (hap, deadline, duration, cps, t) => {
+      //   ^ this signature is different from hap.context.onTrigger, as set by Pattern.onTrigger(onTrigger)
+      // TODO: get rid of deadline after https://codeberg.org/uzu/strudel/pulls/1004
+      try {
+        if (!hap.context.onTrigger || !hap.context.dominantTrigger) {
+          await defaultOutput(hap, deadline, duration, cps, t);
+        }
+        if (hap.context.onTrigger) {
+          // call signature of output / onTrigger is different...
+          await hap.context.onTrigger(hap, getTime(), cps, t);
+        }
+      } catch (err) {
+        errorLogger(err, 'getTrigger');
       }
-      if (hap.context.onTrigger) {
-        // call signature of output / onTrigger is different...
-        await hap.context.onTrigger(hap, getTime(), cps, t);
-      }
-    } catch (err) {
-      errorLogger(err, 'getTrigger');
-    }
-  };
+    };

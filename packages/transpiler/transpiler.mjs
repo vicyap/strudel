@@ -55,6 +55,7 @@ export function transpiler(input, options = {}) {
   };
   let widgets = [];
   let sliders = [];
+  let labels = [];
 
   walk(ast, {
     enter(node, parent /* , prop, index */) {
@@ -146,10 +147,32 @@ export function transpiler(input, options = {}) {
         return this.replace(withAwait(node));
       }
       if (isLabelStatement(node)) {
+        // Collect label info for block-based evaluation
+        // Store positions WITHOUT offset so repl can slice the transpiler output correctly
+        if (blockBased) {
+          labels.push({
+            name: node.label.name,
+            index: node.start - nodeOffset,
+            end: node.label.end - nodeOffset,
+            fullMatch: input.slice(node.start - nodeOffset, node.label.end - nodeOffset),
+            activeVisualizer: findVisualizerInSubtree(node.body),
+          });
+        }
         return this.replace(labelToP(node));
       }
+      // Detect all() calls as special labels for block management
+      // Store positions WITHOUT offset so repl can slice the transpiler output correctly
+      if (blockBased && isAllCall(node)) {
+        labels.push({
+          name: 'all',
+          index: node.start - nodeOffset,
+          end: node.end - nodeOffset,
+          fullMatch: input.slice(node.start - nodeOffset, node.end - nodeOffset),
+          activeVisualizer: node.arguments[0] ? findVisualizerInSubtree(node.arguments[0]) : null,
+        });
+      }
     },
-    leave(node, parent, prop, index) {},
+    leave(node, parent, prop, index) { },
   });
 
   let { body } = ast;
@@ -198,7 +221,7 @@ export function transpiler(input, options = {}) {
   if (!emitMiniLocations) {
     return { output };
   }
-  return { output, miniLocations, widgets, sliders };
+  return { output, miniLocations, widgets, sliders, labels };
 }
 
 function isStringWithDoubleQuotes(node, locations, code) {
@@ -301,6 +324,10 @@ function isBareSamplesCall(node, parent) {
   return node.type === 'CallExpression' && node.callee.name === 'samples' && parent.type !== 'AwaitExpression';
 }
 
+function isAllCall(node) {
+  return node.type === 'CallExpression' && node.callee.name === 'all';
+}
+
 function withAwait(node) {
   return {
     type: 'AwaitExpression',
@@ -399,6 +426,46 @@ function languageWithLocation(name, value, offset) {
     ],
     optional: false,
   };
+}
+
+// List of non-inline widgets that need cleanup
+// These are Pattern.prototype methods that create persistent visualizations
+// (should be repalced by a function call producing an actual list of registered widgets)
+const nonInlineWidgets = ['punchcard', 'spiral', 'scope', 'pitchwheel', 'spectrum', 'pianoroll', 'wordfall'];
+
+function isVisualizerCall(node) {
+  if (
+    node.type === 'CallExpression' &&
+    node.callee.type === 'MemberExpression' &&
+    nonInlineWidgets.includes(node.callee.property?.name)
+  ) {
+    return node.callee.property.name;
+  }
+  return null;
+}
+
+function findVisualizerInSubtree(node) {
+  if (!node || typeof node !== 'object') return null;
+
+  // Check if this node is a visualizer call
+  const viz = isVisualizerCall(node);
+  if (viz) return viz;
+
+  // Recursively search children
+  for (const key of Object.keys(node)) {
+    if (key === 'parent') continue; // Skip parent references to avoid cycles
+    const child = node[key];
+    if (Array.isArray(child)) {
+      for (const item of child) {
+        const found = findVisualizerInSubtree(item);
+        if (found) return found;
+      }
+    } else if (child && typeof child === 'object' && child.type) {
+      const found = findVisualizerInSubtree(child);
+      if (found) return found;
+    }
+  }
+  return null;
 }
 
 // Creates AST nodes for: userDefinedKeys.add('name'); strudelScope.name = name; globalThis.name = name;

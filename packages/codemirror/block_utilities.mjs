@@ -44,7 +44,7 @@ export const evalBlock = (strudelMirror) => {
     if (block) {
       // Flash the block being evaluated
       strudelMirror.flash(200, { from: a, to: b });
-      strudelMirror.repl.evaluate(block, true, true, true, { range });
+      strudelMirror.repl.evaluate(block, true, true, { range });
     }
   }
   return true;
