@@ -133,6 +133,8 @@ const keymaps = {
   vscode: vscodeExtension,
 };
 
+export { Vim } from '@replit/codemirror-vim';
+
 export function keybindings(name) {
   const active = keymaps[name];
   const extensions = active ? [Prec.high(active())] : [];
