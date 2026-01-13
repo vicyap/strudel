@@ -301,7 +301,7 @@ export async function onTriggerSample(t, value, onended, bank, resolveUrl) {
   }
 
   // vibrato
-  let vibratoOscillator = getVibratoOscillator(bufferSource.detune, value, t);
+  const vibratoHandle = getVibratoOscillator(bufferSource.detune, value, t);
 
   const time = t + nudge;
   bufferSource.start(time, offset);
@@ -323,10 +323,10 @@ export async function onTriggerSample(t, value, onended, bank, resolveUrl) {
   const out = ac.createGain(); // we need a separate gain for the cutgroups because firefox...
   node.connect(out);
   onceEnded(bufferSource, function () {
-    bufferSource.disconnect();
-    vibratoOscillator?.stop();
-    node.disconnect();
-    out.disconnect();
+    releaseAudioNode(bufferSource);
+    vibratoHandle?.stop();
+    releaseAudioNode(node);
+    releaseAudioNode(out);
     onended();
   });
   let envEnd = holdEnd + release + 0.01;
@@ -334,7 +334,7 @@ export async function onTriggerSample(t, value, onended, bank, resolveUrl) {
   const stop = (endTime) => {
     bufferSource.stop(endTime);
   };
-  const handle = { node: out, bufferSource, stop };
+  const handle = { node: out, nodes: { source: [bufferSource], ...vibratoHandle?.nodes }, stop };
 
   // cut groups
   if (cut !== undefined) {

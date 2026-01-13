@@ -5,6 +5,11 @@ export const setDefaultAudioContext = () => {
   return audioContext;
 };
 
+export const setAudioContext = (context) => {
+  audioContext = context;
+  return audioContext;
+};
+
 export const getAudioContext = () => {
   if (!audioContext) {
     return setDefaultAudioContext();

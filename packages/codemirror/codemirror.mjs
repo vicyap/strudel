@@ -27,7 +27,7 @@ import { updateWidgets, widgetPlugin } from './widget.mjs';
 
 export { toggleBlockComment, toggleBlockCommentByLine, toggleComment, toggleLineComment } from '@codemirror/commands';
 
-const extensions = {
+export const extensions = {
   isLineWrappingEnabled: (on) => (on ? EditorView.lineWrapping : []),
   isBracketMatchingEnabled: (on) => (on ? bracketMatching({ brackets: '()[]{}<>' }) : []),
   isBracketClosingEnabled: (on) => (on ? closeBrackets() : []),
@@ -48,7 +48,7 @@ const extensions = {
         ]
       : [],
 };
-const compartments = Object.fromEntries(Object.keys(extensions).map((key) => [key, new Compartment()]));
+export const compartments = Object.fromEntries(Object.keys(extensions).map((key) => [key, new Compartment()]));
 
 export const defaultSettings = {
   keybindings: 'codemirror',
@@ -293,9 +293,9 @@ export class StrudelMirror {
       console.warn('first frame could not be painted');
     }
   }
-  async evaluate() {
+  async evaluate(autostart = true) {
     this.flash();
-    await this.repl.evaluate(this.code);
+    await this.repl.evaluate(this.code, autostart);
   }
   async stop() {
     this.repl.scheduler.stop();
@@ -411,7 +411,7 @@ export class StrudelMirror {
   }
 }
 
-function parseBooleans(value) {
+export function parseBooleans(value) {
   return { true: true, false: false }[value] ?? value;
 }
 

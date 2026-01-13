@@ -9,6 +9,7 @@ import { useLogger } from '../useLogger';
 import { WelcomeTab } from './WelcomeTab';
 import { PatternsTab } from './PatternsTab';
 import { ChevronLeftIcon, XMarkIcon } from '@heroicons/react/16/solid';
+import ExportTab from './ExportTab';
 
 const TAURI = typeof window !== 'undefined' && window.__TAURI__;
 
@@ -80,6 +81,7 @@ const tabNames = {
   patterns: 'patterns',
   sounds: 'sounds',
   reference: 'reference',
+  export: 'export',
   console: 'console',
   settings: 'settings',
 };
@@ -126,6 +128,8 @@ function PanelContent({ context, tab }) {
       return <SoundsTab />;
     case tabNames.reference:
       return <Reference />;
+    case tabNames.export:
+      return <ExportTab handleExport={context.handleExport} />;
     case tabNames.settings:
       return <SettingsTab started={context.started} />;
     case tabNames.files:

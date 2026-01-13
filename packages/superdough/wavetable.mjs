@@ -40,6 +40,11 @@ export const Warpmode = Object.freeze({
 });
 
 const seenKeys = new Set();
+
+export function resetSeenKeys() {
+  seenKeys.clear();
+}
+
 async function getPayload(url, label, frameLen = 2048) {
   const key = `${url},${frameLen}`;
   if (!seenKeys.has(key)) {
@@ -309,21 +314,30 @@ export async function onTriggerSynth(t, value, onended, tables, cps, frameLen) {
       dcoffset: value.warpdc ?? 0,
     },
   );
-  const vibratoOscillator = getVibratoOscillator(source.parameters.get('detune'), value, t);
-  const fm = applyFM(source.parameters.get('frequency'), value, t);
+  const vibratoHandle = getVibratoOscillator(source.parameters.get('detune'), value, t);
+  const fmHandle = applyFM(source.parameters.get('frequency'), value, t);
   const envGain = ac.createGain();
   const node = source.connect(envGain);
   getParamADSR(node.gain, attack, decay, sustain, release, 0, 0.3, t, holdEnd, 'linear');
   getPitchEnvelope(source.parameters.get('detune'), value, t, holdEnd);
-  const handle = { node, source };
+  const handle = {
+    node,
+    nodes: {
+      source: [source],
+      wt_lfo: [wtPosModulators],
+      warp_lfo: [wtWarpModulators],
+      ...fmHandle?.nodes,
+      ...vibratoHandle?.nodes,
+    },
+  };
   const timeoutNode = webAudioTimeout(
     ac,
     () => {
       releaseAudioNode(source);
-      vibratoOscillator?.stop();
-      fm?.stop();
-      wtPosModulators?.disconnect();
-      wtWarpModulators?.disconnect();
+      vibratoHandle?.stop();
+      fmHandle?.stop();
+      releaseAudioNode(wtPosModulators);
+      releaseAudioNode(wtWarpModulators);
       onended();
     },
     t,
