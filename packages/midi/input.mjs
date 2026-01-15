@@ -8,6 +8,11 @@ import { WebMidi } from 'webmidi';
 import { logger, ref } from '@strudel/core';
 import { getDevice } from './util.mjs';
 
+/**
+ * MIDI input device wrapper that manages connection and reconnection, tracks
+ * persisted CC states, etc. These instances are long-lived and are maintained as singletons
+ * (keyed globally by input string/number).
+ */
 export class MidiInput {
   /**
    *
@@ -25,6 +30,11 @@ export class MidiInput {
     this.initialDevice = this._startDeviceListener();
   }
 
+  /**
+   * Implementation for the cc() factory function tied to this specific input.
+   * @param {number} cc MIDI CC number
+   * @param {number | undefined} chan MIDI channel (1-16) or undefined for all channels
+   */
   createCC(cc, chan) {
     const lookupMap = chan === undefined ? this._refs : this._refsByChan[chan];
     if (!(cc in lookupMap)) {
@@ -71,6 +81,7 @@ export class MidiInput {
     return initialDevice;
   }
 
+  // Returns a promise that resolves when the specified device is connected
   _waitForDevice() {
     return new Promise((resolve) => {
       const connListener = () => {
@@ -87,6 +98,7 @@ export class MidiInput {
     });
   }
 
+  // Returns a promise that resolves when the specified device is disconnected
   _waitForDeviceDisconnect(device) {
     return new Promise((resolve) => {
       const disconnListener = (e) => {
@@ -162,6 +174,7 @@ export class MidiInput {
     );
   }
 
+  // Send CC values back to device to restore encoders and motorized sliders
   _sendAllStates(device) {
     const output = WebMidi.outputs.find((o) => o.name === device.name);
     if (!output) {
