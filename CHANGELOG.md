@@ -2,8 +2,62 @@
 
 NOTE: you can generate this with `node warm.js`. it might still not be perfectly sorted...
 
+## january 2026
+
+- 2026-01-11T19:00:25+01:00 Fix sounds example to work in the REPL by JesCoding in: [#1851](https://codeberg.org/uzu/strudel/pulls/1851) 
+- 2026-01-11T13:52:02+01:00 Improve hint text when sound search has no results by floy in: [#1883](https://codeberg.org/uzu/strudel/pulls/1883) 
+- 2026-01-11T12:45:07+01:00 fix: remove faulty default readme by froos in: [#1889](https://codeberg.org/uzu/strudel/pulls/1889) 
+- 2026-01-11T12:15:34+01:00 fix/self-hosted-config by alienmind in: [#1880](https://codeberg.org/uzu/strudel/pulls/1880) 
+- 2026-01-11T12:07:48+01:00 Feat: Support External AudioContext Injection by 1d10t in: [#1833](https://codeberg.org/uzu/strudel/pulls/1833) 
+- 2026-01-11T11:37:37+01:00 fix: add trem to top level by froos in: [#1887](https://codeberg.org/uzu/strudel/pulls/1887) 
+- 2026-01-11T11:37:18+01:00 fix: export start cycle min 0 by froos in: [#1888](https://codeberg.org/uzu/strudel/pulls/1888) 
+- 2026-01-11T11:05:44+01:00 fix: repl package init audio properly by froos in: [#1836](https://codeberg.org/uzu/strudel/pulls/1836) 
+- 2026-01-11T06:51:24+01:00 Fix: show reload dialog when uploading prebake script by daslyfe in: [#1886](https://codeberg.org/uzu/strudel/pulls/1886) 
+- 2026-01-11T06:01:42+01:00 fixes Serial onTrigger() params #1633 by gueejla in: [#1885](https://codeberg.org/uzu/strudel/pulls/1885) 
+- 2026-01-10T20:52:40+01:00 Allow top level distortions for the purpose of FX by glossing in: [#1884](https://codeberg.org/uzu/strudel/pulls/1884) 
+- 2026-01-10T23:12:48+01:00 Perf: Targeted node pools by glossing in: [#1810](https://codeberg.org/uzu/strudel/pulls/1810) 
+- 2026-01-09T03:43:37+01:00 Bake in scaling by `freq` for FM with a gain node by glossing in: [#1878](https://codeberg.org/uzu/strudel/pulls/1878) 
+- 2026-01-09T02:53:38+01:00 Bug fix: Properly handle subcontrols by glossing in: [#1877](https://codeberg.org/uzu/strudel/pulls/1877) 
+- 2026-01-07T20:06:18+01:00 Feat: Add ability to turn mini parsing off with mini-off decorator by glossing in: [#1786](https://codeberg.org/uzu/strudel/pulls/1786) 
+- 2026-01-07T19:22:24+01:00 Bug Fix: Update loopStart/End to not be offset by glossing in: [#1826](https://codeberg.org/uzu/strudel/pulls/1826) 
+- 2026-01-06T06:35:49+01:00 Update modulator docstrings and allow ids to be patterns by glossing in: [#1874](https://codeberg.org/uzu/strudel/pulls/1874) 
+- 2026-01-04T17:14:11+01:00 Fix doc link in @strudel/osc README.md by forrcaho in: [#1872](https://codeberg.org/uzu/strudel/pulls/1872) 
+- 2026-01-04T02:01:07+01:00 Make stretch modulatable by glossing in: [#1870](https://codeberg.org/uzu/strudel/pulls/1870) 
+- 2026-01-02T18:44:53+01:00 Make pan modulatable by glossing in: [#1865](https://codeberg.org/uzu/strudel/pulls/1865) 
+- 2026-01-01T21:42:23+01:00 Fix transpilation example to have same mini-notation by JesCoding in: [#1850](https://codeberg.org/uzu/strudel/pulls/1850) 
+- 2026-01-01T21:39:05+01:00 fix: missing punctuation by eddyflux in: [#1860](https://codeberg.org/uzu/strudel/pulls/1860) 
+- 2026-01-01T20:20:34+01:00 Fix formatting of docstring by glossing in: [#1864](https://codeberg.org/uzu/strudel/pulls/1864) 
+- 2026-01-01T19:52:15+01:00 Feat: FX Chains by glossing in: [#1861](https://codeberg.org/uzu/strudel/pulls/1861) 
+
+## december 2025
+
+- 2025-12-29T21:59:11+01:00 Bugfix: Fix modulator clamping when min/max not specified by glossing in: [#1859](https://codeberg.org/uzu/strudel/pulls/1859) 
+- 2025-12-29T16:07:18+01:00 Fix AudioContext change detection. Use AudioNode.context by jeromew in: [#1858](https://codeberg.org/uzu/strudel/pulls/1858) 
+- 2025-12-28T14:20:03+01:00 dough repl fixes by froos in: [#1855](https://codeberg.org/uzu/strudel/pulls/1855) 
+- 2025-12-19T08:11:50+01:00 fix: visual block selection mode for vim bindings by Dsm0 in: [#1839](https://codeberg.org/uzu/strudel/pulls/1839) 
+- 2025-12-28T22:58:38+01:00 Say that @license should use SPDX identifier by Wuzzy in: [#1817](https://codeberg.org/uzu/strudel/pulls/1817) 
+- 2025-12-28T22:56:07+01:00 Expose Vim object in order to create custom keybindings by JohnBjrk in: [#1816](https://codeberg.org/uzu/strudel/pulls/1816) 
+- 2025-12-20T22:27:52+01:00 Document "-" in mini-notation by Wuzzy in: [#1818](https://codeberg.org/uzu/strudel/pulls/1818) 
+- 2025-12-20T22:20:27+01:00 simplify envValAtTime and remove asymmetric behavior (fix #1653) by pulu in: [#1815](https://codeberg.org/uzu/strudel/pulls/1815) 
+- 2025-12-14T15:09:12+01:00 delta -> per / perx / cyclesPer refinements by yaxu in: [#1832](https://codeberg.org/uzu/strudel/pulls/1832) 
+- 2025-12-14T19:33:37+01:00 Fix: wrong warning in build environments by jeromew in: [#1835](https://codeberg.org/uzu/strudel/pulls/1835)
+- 2025-12-12T10:28:27+01:00 Add delta signal for representing the duration of events in patterns that are combined with it by yaxu in: [#1831](https://codeberg.org/uzu/strudel/pulls/1831) 
+- 2025-12-11T16:37:58+01:00 Updates relating to LLM, github, etc by yaxu in: [#1830](https://codeberg.org/uzu/strudel/pulls/1830) 
+- 2025-12-10T15:32:44+01:00 fix .as so it doesn't set undefined values by yaxu in: [#1827](https://codeberg.org/uzu/strudel/pulls/1827) 
+- 2025-12-08T19:27:31+01:00 [perf] propagate `onceEnded` and `releaseAudioNode` by jeromew in: [#1809](https://codeberg.org/uzu/strudel/pulls/1809) 
+- 2025-12-07T19:15:43+01:00 Add vel as a synonym for velocity & update a few docstrings by glossing in: [#1781](https://codeberg.org/uzu/strudel/pulls/1781) 
+- 2025-12-07T18:53:04+01:00 [perf] fix phaser leak of unused biquads by jeromew in: [#1800](https://codeberg.org/uzu/strudel/pulls/1800) 
+- 2025-12-07T18:42:50+01:00 Bug fix: Remove failing tests due to shabda removal by glossing in: [#1820](https://codeberg.org/uzu/strudel/pulls/1820) 
+- 2025-12-03T17:35:05+01:00 [perf] release unused AudioBufferSourceNode + releaseAudioNode by jeromew in: [#1805](https://codeberg.org/uzu/strudel/pulls/1805) 
+- **2025-12-01 strudel.cc deployed**
+
 ## november 2025
 
+- 2025-11-29T01:00:42+01:00 added export to getSuperdoughAudioController() so that its possible to route superdough audio through other webaudio applications. by ndr0n in: [#1796](https://codeberg.org/uzu/strudel/pulls/1796) 
+- 2025-11-28T23:26:20+01:00 add revv() for reversing whole patterns by yaxu in: [#1791](https://codeberg.org/uzu/strudel/pulls/1791) 
+- 2025-11-28T20:19:16+01:00 [perf] Disconnect lfos for phaser and filters by glossing in: [#1787](https://codeberg.org/uzu/strudel/pulls/1787) 
+- 2025-11-27T23:08:52+01:00 fix: return silence when no pattern is returned by froos in: [#1795](https://codeberg.org/uzu/strudel/pulls/1795) 
+- 2025-11-27T22:38:05+01:00 add CHANGELOG.md + basic script to generate by froos in: [#1794](https://codeberg.org/uzu/strudel/pulls/1794) 
 - 2025-11-27T22:03:53+01:00 [perf] in `noise`, let noiseMix do the disconnect when it exists by jeromew in: [#1783](https://codeberg.org/uzu/strudel/pulls/1783) 
 - 2025-11-27T22:01:01+01:00 Bug Fix: Retries for sounds tab by glossing in: [#1754](https://codeberg.org/uzu/strudel/pulls/1754) 
 - 2025-11-27T20:36:46+01:00 [hydra] return the hydra object when await initHydra(..) is called by jeromew in: [#1784](https://codeberg.org/uzu/strudel/pulls/1784) 
@@ -52,6 +106,7 @@ NOTE: you can generate this with `node warm.js`. it might still not be perfectly
 - 2025-10-28T22:51:16+01:00 Repurpose vim shortcuts for usability by dtricks in: [#1624](https://codeberg.org/uzu/strudel/pulls/1624) 
 - 2025-10-28T22:35:21+01:00 Add support for euclidian in mondo with `bd&3:8` by TristanCacqueray in: [#1630](https://codeberg.org/uzu/strudel/pulls/1630)
 - 2025-10-27T10:42:07+01:00 Use bunny cdn for all samples and json files by yaxu in: [#1701](https://codeberg.org/uzu/strudel/pulls/1701) 
+- **2025-10-27 @strudel/core@1.2.5**
 - 2025-10-26T22:52:54+01:00 degithub - switch some samples to bunnycdn by yaxu in: [#1697](https://codeberg.org/uzu/strudel/pulls/1697) 
 - 2025-10-26T17:09:22+01:00 Fix ZZFX example by moumar in: [#1685](https://codeberg.org/uzu/strudel/pulls/1685) 
 - 2025-10-23T15:56:04+02:00 Make osc port and host configurable. Changes dependencies. by yaxu in: [#1682](https://codeberg.org/uzu/strudel/pulls/1682) 

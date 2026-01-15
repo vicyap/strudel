@@ -1,13 +1,13 @@
 import { defaultSettings, settingsMap, useSettings } from '../../../settings.mjs';
 import { themes } from '@strudel/codemirror';
 import { Textbox } from '../textbox/Textbox.jsx';
-import { isUdels } from '../../util.mjs';
+import { confirmAndReloadPage, isUdels } from '../../util.mjs';
 import { ButtonGroup } from './Forms.jsx';
 import { AudioDeviceSelector } from './AudioDeviceSelector.jsx';
 import { AudioEngineTargetSelector } from './AudioEngineTargetSelector.jsx';
 import { confirmDialog } from '../../util.mjs';
 import { DEFAULT_MAX_POLYPHONY, setMaxPolyphony, setMultiChannelOrbits } from '@strudel/webaudio';
-import { ActionButton, SpecialActionButton } from '../button/action-button.jsx';
+import { SpecialActionButton } from '../button/action-button.jsx';
 import { ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
 
 function Checkbox({ label, value, onChange, disabled = false }) {
@@ -86,8 +86,6 @@ const fontFamilyOptions = {
   galactico: 'galactico',
 };
 
-const RELOAD_MSG = 'Changing this setting requires the window to reload itself. OK?';
-
 export function SettingsTab({ started }) {
   const {
     theme,
@@ -127,11 +125,8 @@ export function SettingsTab({ started }) {
             isDisabled={started}
             audioDeviceName={audioDeviceName}
             onChange={(audioDeviceName) => {
-              confirmDialog(RELOAD_MSG).then((r) => {
-                if (r == true) {
-                  settingsMap.setKey('audioDeviceName', audioDeviceName);
-                  return window.location.reload();
-                }
+              confirmAndReloadPage(() => {
+                settingsMap.setKey('audioDeviceName', audioDeviceName);
               });
             }}
           />
@@ -141,11 +136,8 @@ export function SettingsTab({ started }) {
         <AudioEngineTargetSelector
           target={audioEngineTarget}
           onChange={(target) => {
-            confirmDialog(RELOAD_MSG).then((r) => {
-              if (r == true) {
-                settingsMap.setKey('audioEngineTarget', target);
-                return window.location.reload();
-              }
+            confirmAndReloadPage(() => {
+              settingsMap.setKey('audioEngineTarget', target);
             });
           }}
         />
@@ -175,12 +167,9 @@ export function SettingsTab({ started }) {
           label="Multi Channel Orbits"
           onChange={(cbEvent) => {
             const val = cbEvent.target.checked;
-            confirmDialog(RELOAD_MSG).then((r) => {
-              if (r == true) {
-                settingsMap.setKey('multiChannelOrbits', val);
-                setMultiChannelOrbits(val);
-                return window.location.reload();
-              }
+            confirmAndReloadPage(() => {
+              settingsMap.setKey('multiChannelOrbits', val);
+              setMultiChannelOrbits(val);
             });
           }}
           value={multiChannelOrbits}
@@ -297,11 +286,8 @@ export function SettingsTab({ started }) {
           label="Sync across Browser Tabs / Windows"
           onChange={(cbEvent) => {
             const newVal = cbEvent.target.checked;
-            confirmDialog(RELOAD_MSG).then((r) => {
-              if (r) {
-                settingsMap.setKey('isSyncEnabled', newVal);
-                window.location.reload();
-              }
+            confirmAndReloadPage(() => {
+              settingsMap.setKey('isSyncEnabled', newVal);
             });
           }}
           disabled={shouldAlwaysSync}

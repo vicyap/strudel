@@ -8,10 +8,10 @@ import {
   getParamADSR,
   getPitchEnvelope,
   getVibratoOscillator,
-  getWorklet,
-  releaseAudioNode,
   webAudioTimeout,
+  releaseAudioNode,
 } from './helpers.mjs';
+import { getNodeFromPool, releaseNodeToPool } from './nodePools.mjs';
 import { logger } from './logger.mjs';
 
 export const Warpmode = Object.freeze({
@@ -230,24 +230,26 @@ export async function onTriggerSynth(t, value, onended, tables, cps, frameLen) {
   }
   const endWithRelease = holdEnd + release;
   const envEnd = endWithRelease + 0.01;
-  const source = getWorklet(
-    ac,
-    'wavetable-oscillator-processor',
-    {
-      begin: t,
-      end: envEnd,
-      frequency,
-      freqspread: value.detune,
-      position: value.wt,
-      warp: value.warp,
-      warpMode: warpmode,
-      voices: Math.max(value.unison ?? 1, 1),
-      panspread: value.spread,
-      phaserand: (value.wtphaserand ?? value.unison > 1) ? 1 : 0,
-    },
-    { outputChannelCount: [2] },
-  );
-  source.port.postMessage({ type: 'table', payload });
+  const params = {
+    begin: t,
+    end: envEnd,
+    frequency,
+    freqspread: value.detune,
+    position: value.wt,
+    warp: value.warp,
+    warpMode: warpmode,
+    voices: Math.max(value.unison ?? 1, 1),
+    panspread: value.spread,
+    phaserand: (value.wtphaserand ?? value.unison > 1) ? 1 : 0,
+  };
+  const factory = () => new AudioWorkletNode(ac, 'wavetable-oscillator-processor', { outputChannelCount: [2] });
+  const source = getNodeFromPool('wavetable', factory);
+  Object.entries(params).forEach(([key, value]) => {
+    const param = source.parameters.get(key);
+    const target = value !== undefined ? value : param.defaultValue;
+    param.value = target;
+  });
+  source.port.postMessage({ type: 'initialize', payload });
   if (ac.currentTime > t) {
     logger(`[wavetable] still loading sound "${s}:${n}"`, 'highlight');
     return;
@@ -333,7 +335,7 @@ export async function onTriggerSynth(t, value, onended, tables, cps, frameLen) {
   const timeoutNode = webAudioTimeout(
     ac,
     () => {
-      releaseAudioNode(source);
+      releaseNodeToPool(source);
       vibratoHandle?.stop();
       fmHandle?.stop();
       releaseAudioNode(wtPosModulators);

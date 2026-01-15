@@ -66,7 +66,7 @@ export default function ExportTab(Props) {
         <div className="flex flex-row gap-4 w-full">
           <FormItem label="Start cycle" disabled={exporting}>
             <Textbox
-              min={1}
+              min={0}
               max={Infinity}
               onBlur={(e) => {
                 let v = parseInt(e.target.value);

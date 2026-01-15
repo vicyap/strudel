@@ -24,6 +24,7 @@ import { sliderPlugin, updateSliderWidgets } from './slider.mjs';
 import { activateTheme, initTheme, theme } from './themes.mjs';
 import { isTooltipEnabled } from './tooltip.mjs';
 import { updateWidgets, widgetPlugin } from './widget.mjs';
+import { jumpToCharacter } from './labelJump.mjs';
 
 export { toggleBlockComment, toggleBlockCommentByLine, toggleComment, toggleLineComment } from '@codemirror/commands';
 
@@ -118,6 +119,14 @@ export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, roo
             key: 'Alt-.',
             preventDefault: true,
             run: () => onStop?.(),
+          },
+          {
+            key: 'Alt-w',
+            run: (view) => jumpToCharacter(view, '$', 1),
+          },
+          {
+            key: 'Alt-q',
+            run: (view) => jumpToCharacter(view, '$', -1),
           },
           /* {
             key: 'Ctrl-Shift-.',

@@ -18,6 +18,7 @@ import {
 } from './helpers.mjs';
 import { logger } from './logger.mjs';
 import { getNoiseMix, getNoiseOscillator } from './noise.mjs';
+import { getNodeFromPool, releaseNodeToPool } from './nodePools.mjs';
 
 const waveforms = ['triangle', 'square', 'sawtooth', 'sine', 'user', 'one'];
 const waveformAliases = [
@@ -167,22 +168,22 @@ export function registerSynthSounds() {
       const end = holdend + release + 0.01;
       const voices = clamp(unison, 1, 100);
       let panspread = voices > 1 ? clamp(spread, 0, 1) : 0;
-      let o = getWorklet(
-        ac,
-        'supersaw-oscillator',
-        {
-          frequency,
-          begin,
-          end,
-          freqspread: detune,
-          voices,
-          panspread,
-        },
-        {
-          outputChannelCount: [2],
-        },
-      );
-
+      const params = {
+        frequency,
+        begin,
+        end,
+        freqspread: detune,
+        voices,
+        panspread,
+      };
+      const factory = () => new AudioWorkletNode(ac, 'supersaw-oscillator', { outputChannelCount: [2] });
+      const o = getNodeFromPool('supersaw', factory);
+      Object.entries(params).forEach(([key, value]) => {
+        const param = o.parameters.get(key);
+        const target = value !== undefined ? value : param.defaultValue;
+        param.value = target;
+      });
+      o.port.postMessage({ type: 'initialize' });
       const gainAdjustment = 1 / Math.sqrt(voices);
       getPitchEnvelope(o.parameters.get('detune'), value, begin, holdend);
       const vibratoHandle = getVibratoOscillator(o.parameters.get('detune'), value, begin);
@@ -195,7 +196,7 @@ export function registerSynthSounds() {
       let timeoutNode = webAudioTimeout(
         ac,
         () => {
-          releaseAudioNode(o);
+          releaseNodeToPool(o);
           onended();
           fmHandle?.stop();
           vibratoHandle?.stop();

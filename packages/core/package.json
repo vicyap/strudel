@@ -31,6 +31,7 @@
   },
   "homepage": "https://strudel.cc",
   "dependencies": {
+    "@kabelsalat/web": "^0.4.0",
     "fraction.js": "^5.2.1"
   },
   "gitHead": "0e26d4e741500f5bae35b023608f062a794905c2",

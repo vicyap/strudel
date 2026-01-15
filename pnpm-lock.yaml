@@ -234,6 +234,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@kabelsalat/web':
+        specifier: ^0.4.0
+        version: 0.4.0
       fraction.js:
         specifier: ^5.2.1
         version: 5.2.1
@@ -518,6 +521,9 @@ importers:
 
   packages/superdough:
     dependencies:
+      '@kabelsalat/lib':
+        specifier: ^0.4.0
+        version: 0.4.0
       nanostores:
         specifier: ^0.11.3
         version: 0.11.3
@@ -1968,6 +1974,15 @@ packages:
   '@jsdoc/salty@0.2.9':
     resolution: {integrity: sha512-yYxMVH7Dqw6nO0d5NIV8OQWnitU8k6vXH8NtgqAfIa/IUqRMxRv/NUJJ08VEKbAakwxlgBl5PJdrU0dMPStsnw==}
     engines: {node: '>=v12.0.0'}
+
+  '@kabelsalat/core@0.3.1':
+    resolution: {integrity: sha512-y2wHZyKnwbhJdGuwXvkaIb5vqbNTW6rMDnBslHGxQHTFX5xYyxJLOcuF2/EOB698t09kOVhmmpLXKbyokf3pOA==}
+
+  '@kabelsalat/lib@0.4.0':
+    resolution: {integrity: sha512-UoOUhYOFShDjYCTne1edevCHHxSC07FsxG9tQ5GGOOzNoKMUpGVY8Ecq9X1GVyseQFvQBgz3aqAC6K8FPZp4ZQ==}
+
+  '@kabelsalat/web@0.4.0':
+    resolution: {integrity: sha512-uvcOJjpKf8PG6KrgY0QEpoV4IAbIPDXh73bPtFSdDcXApbkSyEEyeNE8IoqIlqfcjIX926IOCAx9nM6FsFp6DA==}
 
   '@lerna/create@8.1.9':
     resolution: {integrity: sha512-DPnl5lPX4v49eVxEbJnAizrpMdMTBz1qykZrAbBul9rfgk531v8oAt+Pm6O/rpAleRombNM7FJb5rYGzBJatOQ==}
@@ -9260,6 +9275,17 @@ snapshots:
   '@jsdoc/salty@0.2.9':
     dependencies:
       lodash: 4.17.21
+
+  '@kabelsalat/core@0.3.1': {}
+
+  '@kabelsalat/lib@0.4.0':
+    dependencies:
+      '@kabelsalat/core': 0.3.1
+
+  '@kabelsalat/web@0.4.0':
+    dependencies:
+      '@kabelsalat/core': 0.3.1
+      '@kabelsalat/lib': 0.4.0
 
   '@lerna/create@8.1.9(encoding@0.1.13)(typescript@5.7.3)':
     dependencies:

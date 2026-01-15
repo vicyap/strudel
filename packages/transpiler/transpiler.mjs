@@ -119,7 +119,64 @@ export function transpiler(input, options = {}) {
         return this.replace(labelToP(node));
       }
     },
-    leave(node, parent, prop, index) {},
+
+    leave(node, parent, prop, index) {
+      if (!isKabelCall(node)) return;
+
+      let [expr, ...rest] = node.arguments;
+      if (!expr) throw new Error('K(...) requires an expression');
+
+      if (shouldCallKabelExpression(expr)) {
+        expr = {
+          type: 'CallExpression',
+          callee: expr,
+          arguments: [],
+          optional: false,
+        };
+      }
+
+      const { template, patternExprs } = extractPatternPlaceholders(expr);
+      if (patternExprs.length) {
+        const workletArgs = [{ type: 'Literal', value: template }, ...patternExprs, ...rest];
+
+        let callee = node.callee;
+        if (callee.type === 'ChainExpression') callee = callee.expression;
+        if (callee.type === 'MemberExpression') {
+          return this.replace({
+            type: 'CallExpression',
+            callee: workletMemberAst(callee.object),
+            arguments: workletArgs,
+            optional: false,
+          });
+        }
+        return this.replace({
+          type: 'CallExpression',
+          callee: { type: 'Identifier', name: 'worklet' },
+          arguments: workletArgs,
+          optional: false,
+        });
+      }
+
+      const kabelSrc = genExprSource(expr);
+      const workletArgs = [{ type: 'Literal', value: kabelSrc }, ...rest];
+
+      let callee = node.callee;
+      if (callee.type === 'ChainExpression') callee = callee.expression;
+      if (callee.type === 'MemberExpression') {
+        return this.replace({
+          type: 'CallExpression',
+          callee: workletMemberAst(callee.object),
+          arguments: workletArgs,
+          optional: false,
+        });
+      }
+      return this.replace({
+        type: 'CallExpression',
+        callee: { type: 'Identifier', name: 'worklet' },
+        arguments: workletArgs,
+        optional: false,
+      });
+    },
   });
 
   let { body } = ast;
@@ -153,6 +210,166 @@ export function transpiler(input, options = {}) {
     return { output };
   }
   return { output, miniLocations, widgets };
+}
+
+function isKabelCall(node) {
+  if (node.type !== 'CallExpression') return false;
+  let callee = node.callee;
+  if (callee.type === 'ChainExpression') callee = callee.expression;
+  if (callee.type === 'MemberExpression') return !callee.computed && callee.property?.name === 'K';
+  return callee.type === 'Identifier' && callee.name === 'K';
+}
+
+function shouldCallKabelExpression(expr) {
+  if (expr.type !== 'ArrowFunctionExpression' && expr.type !== 'FunctionExpression') {
+    return false;
+  }
+  if (expr.params.length) {
+    return false;
+  }
+  return expr.body?.type === 'BlockStatement';
+}
+
+function genExprSource(expr) {
+  return escodegen.generate(expr, { format: { semicolons: false } });
+}
+
+function extractPatternPlaceholders(expr) {
+  const templateExpr = cloneNode(expr);
+  const parents = new Map();
+  const targets = [];
+
+  walk(templateExpr, {
+    enter(node, parent, prop, index) {
+      parents.set(node, { parent, prop, index });
+      const patternExpr = getStrudelPatternExpr(node);
+      if (patternExpr) {
+        targets.push({ node, patternExpr });
+        this.skip();
+      }
+    },
+  });
+
+  if (!targets.length) {
+    return { template: genExprSource(templateExpr), patternExprs: [] };
+  }
+
+  targets.sort((a, b) => getPatternNodeOrder(a.node) - getPatternNodeOrder(b.node));
+
+  const patternExprs = targets.map(({ patternExpr }) => cloneNode(patternExpr));
+
+  let currentExpr = templateExpr;
+  targets.forEach(({ node }, index) => {
+    currentExpr = replaceNode(node, placeholderAst(index), parents, currentExpr);
+  });
+
+  const template = genExprSource(currentExpr);
+  return { template, patternExprs };
+}
+
+function getStrudelPatternExpr(node) {
+  if (isStrudelPatternWrap(node)) {
+    const arg = node.arguments?.[0];
+    if (!arg) {
+      throw new Error('S(...) requires an argument');
+    }
+    return arg;
+  }
+  if (isMiniCall(node)) {
+    return node;
+  }
+  return null;
+}
+
+function isStrudelPatternWrap(node) {
+  if (node.type !== 'CallExpression') {
+    return false;
+  }
+  const callee = node.callee;
+  if (callee.type === 'Identifier') {
+    return callee.name === 'S';
+  }
+  if (callee.type === 'MemberExpression' && !callee.computed) {
+    return callee.property?.name === 'S';
+  }
+  return false;
+}
+
+function getMinilangName() {
+  const minilang = languages.get('minilang');
+  return minilang?.name || 'm';
+}
+
+// Used to identify transpiled `m(...)` calls for proper conversion
+// to, say, kabelsalat placeholders
+function isMiniCall(node) {
+  if (node.type !== 'CallExpression') {
+    return false;
+  }
+  const callee = node.callee;
+  if (callee.type !== 'Identifier') {
+    return false;
+  }
+  if (callee.name !== getMinilangName()) {
+    return false;
+  }
+  const firstArg = node.arguments?.[0];
+  return firstArg?.type === 'Literal' && typeof firstArg.value === 'string';
+}
+
+// If `start` is available, we use it. If it's already been transpiled
+// to `m(...)`, use the provided offset
+function getPatternNodeOrder(node) {
+  if (typeof node.start === 'number') {
+    return node.start;
+  }
+  if (isMiniCall(node)) {
+    const offsetArg = node.arguments?.[1];
+    if (offsetArg?.type === 'Literal' && typeof offsetArg.value === 'number') {
+      return offsetArg.value;
+    }
+  }
+  return 0;
+}
+
+function placeholderAst(index) {
+  return {
+    type: 'MemberExpression',
+    object: { type: 'Identifier', name: 'pat' },
+    property: { type: 'Literal', value: index },
+    computed: true,
+    optional: false,
+  };
+}
+
+function replaceNode(node, replacement, parents, currentRoot) {
+  const info = parents.get(node);
+  if (!info || !info.parent) {
+    return replacement;
+  }
+
+  const { parent, prop, index } = info;
+  if (Array.isArray(parent[prop])) {
+    parent[prop][index] = replacement;
+  } else {
+    parent[prop] = replacement;
+  }
+  parents.set(replacement, { parent, prop, index });
+  return currentRoot;
+}
+
+function cloneNode(node) {
+  return JSON.parse(JSON.stringify(node));
+}
+
+function workletMemberAst(objectExpr) {
+  return {
+    type: 'MemberExpression',
+    object: objectExpr,
+    property: { type: 'Identifier', name: 'worklet' },
+    computed: false,
+    optional: false,
+  };
 }
 
 function isStringWithDoubleQuotes(node, locations, code) {

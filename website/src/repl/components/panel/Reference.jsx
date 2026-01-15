@@ -55,7 +55,7 @@ export function Reference() {
   return (
     <div className="flex h-full w-full p-2 overflow-hidden">
       <div className="h-full  flex flex-col gap-2 w-1/3 max-w-72 ">
-        <div class="w-full flex">
+        <div className="w-full flex">
           <Textbox className="w-full" placeholder="Search" value={search} onChange={setSearch} />
         </div>
         <div className="flex flex-col h-full overflow-y-auto  gap-1.5 bg-background bg-opacity-50  rounded-md">

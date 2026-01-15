@@ -877,7 +877,7 @@ export const { coarse } = registerControl('coarse');
  * note("d d d# d".fast(4)).s("supersaw").tremolo("<3 2 100> ").tremoloskew("<.5>")
  *
  */
-export const { tremolo } = registerControl(['tremolo', 'tremolodepth', 'tremoloskew', 'tremolophase'], 'trem');
+export const { tremolo, trem } = registerControl(['tremolo', 'tremolodepth', 'tremoloskew', 'tremolophase'], 'trem');
 
 /**
  * Modulate the amplitude of a sound with a continuous waveform
