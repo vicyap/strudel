@@ -126,7 +126,23 @@ export function repl({
     );
   }
 
-  // Helper function to handle single label code block storage
+  // helper
+  function cleanupConflictingRanges(codeBlocks, currentKey, newRange) {
+    for (const [existingKey, existingBlock] of Object.entries(codeBlocks)) {
+      if (existingKey === currentKey) continue;
+      if (!existingBlock.range) continue;
+
+      const [existingStart, existingEnd] = existingBlock.range;
+      const [newStart, newEnd] = newRange;
+
+      // If ranges overlap (not just touch), remove the stale block
+      if (!(newEnd <= existingStart || newStart >= existingEnd)) {
+        delete codeBlocks[existingKey];
+      }
+    }
+  }
+
+  // helper
   function handleSingleLabelBlock(label, code, options, meta) {
     // Detect if this block contains a non-inline widget
     // The activeVisualizer is now provided by the transpiler for all labels
@@ -147,18 +163,30 @@ export function repl({
       activeVisualizer: activeVisualizer, // Store the widget type if present, null otherwise
     };
 
-    // Clean up any blocks with conflicting ranges
-    for (const [existingKey, existingBlock] of Object.entries(codeBlocks)) {
-      if (existingKey !== label.name && existingBlock.range && options.range) {
-        const [existingStart, existingEnd] = existingBlock.range;
-        const [newStart, newEnd] = options.range;
+    // Clean up any blocks with conflicting ranges (including declaration blocks)
+    cleanupConflictingRanges(codeBlocks, label.name, options.range);
+  }
 
-        // If ranges overlap (not just touch), remove the stale block
-        if (!(newEnd <= existingStart || newStart >= existingEnd)) {
-          delete codeBlocks[existingKey];
-        }
-      }
-    }
+  // helper
+  // These blocks return silence but may contain mini notation strings that need highlighting
+  function handleDeclarationBlock(code, options, meta) {
+    const range = options.range || [];
+    if (range.length < 2) return;
+
+    const blockKey = `_decl:${range[0]}:${range[1]}`;
+
+    codeBlocks[blockKey] = {
+      code: code,
+      range: range,
+      labels: [],
+      miniLocations: meta?.miniLocations || [],
+      widgets: meta?.widgets || [],
+      sliders: meta?.sliders || [],
+      activeVisualizer: null,
+    };
+
+    // Clean up any overlapping declaration blocks
+    cleanupConflictingRanges(codeBlocks, blockKey, range);
   }
 
   const hush = function () {
@@ -443,6 +471,10 @@ export function repl({
         throw new Error(
           'anonymous labels disabled for block based evaluation (see https://strudel.cc/blog/#label-notation)',
         );
+      } else {
+        // Declaration block (variable/function that returns silence)
+        // Store it so its miniLocations are preserved for highlighting patterns stored in variables
+        handleDeclarationBlock(code, options, meta);
       }
 
       meta.miniLocations = collectFromBlocks('miniLocations');
