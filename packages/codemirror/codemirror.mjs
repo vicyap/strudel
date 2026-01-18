@@ -13,25 +13,22 @@ import {
 } from '@codemirror/view';
 import { persistentAtom } from '@nanostores/persistent';
 import { logger, registerControl, repl } from '@strudel/core';
-import { cleanupDraw, Drawer, cleanupDrawContext } from '@strudel/draw';
-
+import { cleanupDraw, cleanupDrawContext, Drawer } from '@strudel/draw';
 import { isAutoCompletionEnabled } from './autocomplete.mjs';
 import { basicSetup } from './basicSetup.mjs';
+import { evalBlock } from './block_utilities.mjs';
 import { flash, isFlashEnabled } from './flash.mjs';
 import { highlightMiniLocations, isPatternHighlightingEnabled, updateMiniLocations } from './highlight.mjs';
 import { keybindings } from './keybindings.mjs';
-import { sliderPlugin, updateSliderWidgets } from './slider.mjs';
-import { widgetPlugin, updateWidgets } from './widget.mjs';
+import { jumpToCharacter } from './labelJump.mjs';
+import { getSliderWidgets, sliderPlugin, updateSliderWidgets } from './slider.mjs';
 import { activateTheme, initTheme, theme } from './themes.mjs';
 import { isTooltipEnabled } from './tooltip.mjs';
-import { getActiveWidgets } from './widget.mjs';
-import { getSliderWidgets } from './slider.mjs';
-
-import { evalBlock } from './block_utilities.mjs';
+import { getActiveWidgets, updateWidgets, widgetPlugin } from './widget.mjs';
 
 export { toggleBlockComment, toggleBlockCommentByLine, toggleComment, toggleLineComment } from '@codemirror/commands';
 
-const extensions = {
+export const extensions = {
   isLineWrappingEnabled: (on) => (on ? EditorView.lineWrapping : []),
   isBracketMatchingEnabled: (on) => (on ? bracketMatching({ brackets: '()[]{}<>' }) : []),
   isBracketClosingEnabled: (on) => (on ? closeBrackets() : []),
@@ -52,7 +49,7 @@ const extensions = {
         ]
       : [],
 };
-const compartments = Object.fromEntries(Object.keys(extensions).map((key) => [key, new Compartment()]));
+export const compartments = Object.fromEntries(Object.keys(extensions).map((key) => [key, new Compartment()]));
 
 export const defaultSettings = {
   keybindings: 'codemirror',
@@ -138,6 +135,14 @@ export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, roo
             key: 'Alt-.',
             preventDefault: true,
             run: () => onStop?.(),
+          },
+          {
+            key: 'Alt-w',
+            run: (view) => jumpToCharacter(view, '$', 1),
+          },
+          {
+            key: 'Alt-q',
+            run: (view) => jumpToCharacter(view, '$', -1),
           },
           /* {
             key: 'Ctrl-Shift-.',
@@ -467,7 +472,7 @@ export class StrudelMirror {
   }
 }
 
-function parseBooleans(value) {
+export function parseBooleans(value) {
   return { true: true, false: false }[value] ?? value;
 }
 
@@ -481,6 +486,7 @@ function s4() {
 /**
  * Overrides the css of highlighted events. Make sure to use single quotes!
  * @name markcss
+ * @tag visualization
  * @example
  * note("c a f e")
  * .markcss('text-decoration:underline')

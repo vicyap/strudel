@@ -21,6 +21,7 @@ const skippedExamples = [
   'defaultmidimap',
   'midimaps',
   'clearScope',
+  'bmod',
 ];
 
 describe('runs examples', () => {

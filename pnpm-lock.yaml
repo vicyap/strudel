@@ -41,7 +41,7 @@ importers:
         version: 2.2.7
       '@vitest/coverage-v8':
         specifier: 3.0.4
-        version: 3.0.4(vitest@3.0.4(@types/debug@4.1.12)(@types/node@22.10.10)(@vitest/ui@3.0.4)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0))
+        version: 3.0.4(vitest@3.0.4)
       '@vitest/ui':
         specifier: ^3.0.4
         version: 3.0.4(vitest@3.0.4)
@@ -234,6 +234,9 @@ importers:
 
   packages/core:
     dependencies:
+      '@kabelsalat/web':
+        specifier: ^0.4.1
+        version: 0.4.1
       fraction.js:
         specifier: ^5.2.1
         version: 5.2.1
@@ -518,6 +521,9 @@ importers:
 
   packages/superdough:
     dependencies:
+      '@kabelsalat/lib':
+        specifier: ^0.4.1
+        version: 0.4.1
       nanostores:
         specifier: ^0.11.3
         version: 0.11.3
@@ -1968,6 +1974,15 @@ packages:
   '@jsdoc/salty@0.2.9':
     resolution: {integrity: sha512-yYxMVH7Dqw6nO0d5NIV8OQWnitU8k6vXH8NtgqAfIa/IUqRMxRv/NUJJ08VEKbAakwxlgBl5PJdrU0dMPStsnw==}
     engines: {node: '>=v12.0.0'}
+
+  '@kabelsalat/core@0.4.0':
+    resolution: {integrity: sha512-5zV8nh8HffW8aexObXs5pE0xgL0jb1cHc3o8UN6AvK0mBt87fjZvW65E4rMslHyq+OuCscoBJW7B3MbYfWrwMQ==}
+
+  '@kabelsalat/lib@0.4.1':
+    resolution: {integrity: sha512-gBCjrZKD9huTKNJuBC6BXM4PMQSg8otL8A/vp8j98P9v6yWTX1TuyaqdLg/1PrIAMV4hlWoav9ZD3YMFlrvouw==}
+
+  '@kabelsalat/web@0.4.1':
+    resolution: {integrity: sha512-ASkFhePJLx3GjadYOueI7sHKXBbRPk/a1pfslFeQNI9gU7yZq/KrnkmOmLrgrtixAsy7gyi1vWqkmRRvH3Ki6w==}
 
   '@lerna/create@8.1.9':
     resolution: {integrity: sha512-DPnl5lPX4v49eVxEbJnAizrpMdMTBz1qykZrAbBul9rfgk531v8oAt+Pm6O/rpAleRombNM7FJb5rYGzBJatOQ==}
@@ -9261,6 +9276,17 @@ snapshots:
     dependencies:
       lodash: 4.17.21
 
+  '@kabelsalat/core@0.4.0': {}
+
+  '@kabelsalat/lib@0.4.1':
+    dependencies:
+      '@kabelsalat/core': 0.4.0
+
+  '@kabelsalat/web@0.4.1':
+    dependencies:
+      '@kabelsalat/core': 0.4.0
+      '@kabelsalat/lib': 0.4.1
+
   '@lerna/create@8.1.9(encoding@0.1.13)(typescript@5.7.3)':
     dependencies:
       '@npmcli/arborist': 7.5.4
@@ -10554,7 +10580,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@3.0.4(vitest@3.0.4(@types/debug@4.1.12)(@types/node@22.10.10)(@vitest/ui@3.0.4)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0))':
+  '@vitest/coverage-v8@3.0.4(vitest@3.0.4)':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2

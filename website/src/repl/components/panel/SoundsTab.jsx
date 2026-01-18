@@ -210,7 +210,11 @@ export function SoundsTab() {
         ) : (
           ''
         )}
-        {!soundEntries.length && soundsFilter !== 'importSounds' ? 'No sounds loaded' : ''}
+        {!soundEntries.length && soundsFilter !== 'importSounds'
+          ? search == ''
+            ? 'No sounds loaded'
+            : 'No sounds found'
+          : ''}
       </div>
     </div>
   );

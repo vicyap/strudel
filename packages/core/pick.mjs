@@ -28,6 +28,7 @@ const _pick = function (lookup, pat, modulo = true) {
 
 /** * Picks patterns (or plain values) either from a list (by index) or a lookup table (by name).
  * Similar to `inhabit`, but maintains the structure of the original patterns.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -57,6 +58,7 @@ const __pick = register('pick', function (lookup, pat) {
  * it wraps around, rather than sticking at the maximum value.
  * For example, if you pick the fifth pattern of a list of three, you'll get the
  * second one.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -67,6 +69,7 @@ export const pickmod = register('pickmod', function (lookup, pat) {
 });
 
 /** * pickF lets you use a pattern of numbers to pick which function to apply to another pattern.
+ * @tags combiners, functional
  * @param {Pattern} pat
  * @param {Pattern} lookup a pattern of indices
  * @param {function[]} funcs the array of functions from which to pull
@@ -83,6 +86,7 @@ export const pickF = register('pickF', function (lookup, funcs, pat) {
 
 /** * The same as `pickF`, but if you pick a number greater than the size of the functions list,
  * it wraps around, rather than sticking at the maximum value.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {Pattern} lookup a pattern of indices
  * @param {function[]} funcs the array of functions from which to pull
@@ -93,6 +97,7 @@ export const pickmodF = register('pickmodF', function (lookup, funcs, pat) {
 });
 
 /** * Similar to `pick`, but it applies an outerJoin instead of an innerJoin.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -103,6 +108,7 @@ export const pickOut = register('pickOut', function (lookup, pat) {
 
 /** * The same as `pickOut`, but if you pick a number greater than the size of the list,
  * it wraps around, rather than sticking at the maximum value.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -112,6 +118,7 @@ export const pickmodOut = register('pickmodOut', function (lookup, pat) {
 });
 
 /** * Similar to `pick`, but the choosen pattern is restarted when its index is triggered.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -122,6 +129,7 @@ export const pickRestart = register('pickRestart', function (lookup, pat) {
 
 /** * The same as `pickRestart`, but if you pick a number greater than the size of the list,
    * it wraps around, rather than sticking at the maximum value.
+   * @tags combiners
    * @param {Pattern} pat
    * @param {*} xs
    * @returns {Pattern}
@@ -138,6 +146,7 @@ export const pickmodRestart = register('pickmodRestart', function (lookup, pat) 
 });
 
 /** * Similar to `pick`, but the choosen pattern is reset when its index is triggered.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -148,6 +157,7 @@ export const pickReset = register('pickReset', function (lookup, pat) {
 
 /** * The same as `pickReset`, but if you pick a number greater than the size of the list,
  * it wraps around, rather than sticking at the maximum value.
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -159,6 +169,7 @@ export const pickmodReset = register('pickmodReset', function (lookup, pat) {
 /** Picks patterns (or plain values) either from a list (by index) or a lookup table (by name).
    * Similar to `pick`, but cycles are squeezed into the target ('inhabited') pattern.
    * @name inhabit
+   * @tags combiners
    * @synonyms pickSqueeze
    * @param {Pattern} pat
    * @param {*} xs
@@ -180,6 +191,7 @@ export const { inhabit, pickSqueeze } = register(['inhabit', 'pickSqueeze'], fun
  * second one.
  * @name inhabitmod
  * @synonyms pickmodSqueeze
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
@@ -192,6 +204,7 @@ export const { inhabitmod, pickmodSqueeze } = register(['inhabitmod', 'pickmodSq
 /**
  * Pick from the list of values (or patterns of values) via the index using the given
  * pattern of integers. The selected pattern will be compressed to fit the duration of the selecting event
+ * @tags combiners
  * @param {Pattern} pat
  * @param {*} xs
  * @returns {Pattern}
