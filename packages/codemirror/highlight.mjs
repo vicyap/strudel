@@ -25,7 +25,6 @@ const miniLocations = StateField.define({
         //block-based eval case
         if (e.value.range) {
           const stateMiniLocations = getMiniLocationsFromDecorations(locations);
-          const existingById = new Map(stateMiniLocations.map(({ id, from, to }) => [id, [from, to]]));
 
           const normalized = e.value.locations
             .filter(([from]) => from < tr.newDoc.length)
@@ -35,13 +34,12 @@ const miniLocations = StateField.define({
 
           const marks = normalized.map((range) => {
             const id = range.join(':');
-            const useRange = existingById.get(id) || range;
             return Decoration.mark({
               id,
               // this green is only to verify that the decoration moves when the document is edited
               // it will be removed later, so the mark is not visible by default
               attributes: { style: `background-color: #00CA2880` },
-            }).range(...useRange); // -> Decoration
+            }).range(...range); // -> Decoration
           });
 
           const previousMarks = stateMiniLocations
