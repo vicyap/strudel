@@ -473,15 +473,12 @@ export function repl({
 
       const labels = meta.labels || [];
 
+      // Check for anonymous labels (labels starting with '$')
+      const hasAnonymousLabel = labels.some((label) => label.name.startsWith('$'));
+
       // Store code blocks in dictionary using labels as keys
-      if (labels.length > 0) {
-        for (let i = 0; i < labels.length; i++) {
-          // processing transpiler output instead of code is simply to avoid
-          // extra regex in detecting whether or not an inline widget has been commented out
-          processLabeledBlock(labels, i, meta.output, options, meta);
-        }
-      } else if (pattern !== silence) {
-        // variable/function declarations that return silence are allowed,
+      if (hasAnonymousLabel) {
+        // variable/function declarations that don't return patterns are allowed,
         // but anonymous pattern blocks pose an issue for block-based evaluation
         // if an anonymous pattern is evaluated multiple times it will just stack and get louder and louder
 
@@ -490,11 +487,17 @@ export function repl({
         // otherwise we'll have no idea of which pattern is being overridden
 
         // (we probably need to update the docs on this)
-
         // we could easily enable it, but it would confuse a lot of people
+
         throw new Error(
           'anonymous labels disabled for block based evaluation (see https://strudel.cc/blog/#label-notation)',
         );
+      } else if (labels.length > 0) {
+        for (let i = 0; i < labels.length; i++) {
+          // processing transpiler output instead of code is simply to avoid
+          // extra regex in detecting whether or not an inline widget has been commented out
+          processLabeledBlock(labels, i, meta.output, options, meta);
+        }
       } else {
         // Declaration block (variable/function that returns silence)
         // Store it so its miniLocations are preserved for highlighting patterns stored in variables
