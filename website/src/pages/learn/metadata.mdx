@@ -53,6 +53,7 @@ Available tags are:
 - `@url`: web page(s) related to the music (git repository, Soundcloud link, etc.)
 - `@genre`: music genre(s) (pop, jazz, etc.)
 - `@album`: music album name
+- `@tag`: custom tag
 
 Note to tool authors: _Never_ trust that a song has filled those fields with syntactically correct values; make sure your software is robust enough it doesn't break if it encounters bad values
 
@@ -92,3 +93,21 @@ If a tag doesn't accept a list, it can take multi-line values:
          the sofa in the living room.
 */
 ```
+
+# Searching meta-data in the online repl
+
+Meta-data can be used in the search field of the patterns tab in the online repl.
+
+For example to search for all patterns by a specific author use the search term
+
+```
+by: Ada L
+```
+
+or search for patterns with a specific genre like
+
+```
+genre: unicorns
+```
+
+Hint: If no meta-data property is provided in the search all patterns with a `@title`, `@by` or `@tag` matching the search term will be shown.

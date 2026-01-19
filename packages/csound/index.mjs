@@ -135,6 +135,8 @@ export async function loadOrc(url) {
  *  p4 -- MIDI key number (as a real number, not an integer but in [0, 127].
  *  p5 -- MIDI velocity (as a real number, not an integer but in [0, 127].
  *  p6 -- Strudel controls, as a string.
+ *
+ * @tags external_io
  */
 export const csoundm = register('csoundm', (instrument, pat) => {
   let p1 = instrument;

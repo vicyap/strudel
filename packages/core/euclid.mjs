@@ -61,6 +61,7 @@ export const bjorklund = function (ons, steps) {
  *
  * @memberof Pattern
  * @name euclid
+ * @tags temporal
  * @param {number} pulses the number of onsets/beats
  * @param {number} steps the number of steps to fill
  * @returns Pattern
@@ -73,6 +74,7 @@ export const bjorklund = function (ons, steps) {
  * Like `euclid`, but has an additional parameter for 'rotating' the resulting sequence.
  * @memberof Pattern
  * @name euclidRot
+ * @tags temporal
  * @param {number} pulses the number of onsets/beats
  * @param {number} steps the number of steps to fill
  * @param {number} rotation offset in steps
@@ -156,6 +158,7 @@ export const { euclidrot, euclidRot } = register(['euclidrot', 'euclidRot'], fun
  * so there will be no gaps.
  * @name euclidLegato
  * @memberof Pattern
+ * @tags temporal
  * @param {number} pulses the number of onsets/beats
  * @param {number} steps the number of steps to fill
  * @param rotation offset in steps
@@ -187,6 +190,7 @@ export const euclidLegato = register(['euclidLegato'], function (pulses, steps, 
  * the resulting sequence
  * @name euclidLegatoRot
  * @memberof Pattern
+ * @tags temporal
  * @param {number} pulses the number of onsets/beats
  * @param {number} steps the number of steps to fill
  * @param {number} rotation offset in steps
@@ -208,6 +212,7 @@ export const euclidLegatoRot = register(['euclidLegatoRot'], function (pulses, s
  * @name euclidish
  * @synonyms eish
  * @memberof Pattern
+ * @tags temporal
  * @param {number} pulses the number of onsets
  * @param {number} steps the number of steps to fill
  * @param {number} groove exists between the extremes of 0 (straight euclidian) and 1 (straight pulse)

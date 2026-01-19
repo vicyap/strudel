@@ -32,8 +32,9 @@ const getNodeParam = (node, name) => {
 
 const controlTargets = getSuperdoughControlTargets();
 
-const getControlData = (control) => {
-  return controlTargets[control.split('_')[0]];
+const getControlData = (control, subControl) => {
+  const controlNoIdx = control.split('_')[0];
+  return controlTargets[`${controlNoIdx}_${subControl}`] ?? controlTargets[controlNoIdx];
 };
 
 const getRangeForParam = (paramName, currentValue) => {
@@ -59,8 +60,7 @@ const clampWithWaveShaper = (modulator, min, max) => {
 };
 
 const getTargetParamsForControl = (control, nodes, subControl) => {
-  const lookupKey = subControl ? `${control}_${subControl}` : control;
-  const targetInfo = getControlData(lookupKey) ?? getControlData(control);
+  const targetInfo = getControlData(control, subControl);
   if (!targetInfo) {
     errorLogger(
       new Error(`Could not find control data for target '${control}'. It may not be modulatable.`),

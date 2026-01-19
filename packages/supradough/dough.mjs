@@ -19,6 +19,7 @@ function applyGainCurve(val) {
  * @param {number} a - Signal A (can be a single value or an array value in buffer processing).
  * @param {number} b - Signal B (can be a single value or an array value in buffer processing).
  * @param {number} m - Crossfade parameter (0.0 = all A, 1.0 = all B, 0.5 = equal mix).
+ * @tags internals
  * @returns {number} Crossfaded output value.
  */
 function crossfade(a, b, m) {

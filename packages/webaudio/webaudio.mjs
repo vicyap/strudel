@@ -103,8 +103,10 @@ export async function renderPatternAudio(
 }
 
 export function webaudioRepl(options = {}) {
+  const audioContext = options.audioContext ?? getAudioContext();
+  setAudioContext(audioContext);
   options = {
-    getTime: () => getAudioContext().currentTime,
+    getTime: () => audioContext.currentTime,
     defaultOutput: webaudioOutput,
     ...options,
   };

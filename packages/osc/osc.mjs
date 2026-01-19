@@ -79,6 +79,7 @@ export async function oscTrigger(hap, currentTime, cps = 1, targetTime) {
  * For more info, read [MIDI & OSC in the docs](https://strudel.cc/learn/input-output/)
  *
  * @name osc
+ * @tags external_io
  * @memberof Pattern
  * @returns Pattern
  */

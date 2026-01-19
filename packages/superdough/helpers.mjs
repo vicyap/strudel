@@ -1,6 +1,7 @@
 import { getAudioContext } from './audioContext.mjs';
 import { logger } from './logger.mjs';
 import { getNoiseBuffer } from './noise.mjs';
+import { getNodeFromPool } from './nodePools.mjs';
 import { clamp, nanFallback, midiToFreq, noteToMidi } from './util.mjs';
 
 export const noises = ['pink', 'white', 'brown', 'crackle'];
@@ -145,6 +146,7 @@ export function getLfo(audioContext, properties = {}) {
 }
 
 export function getCompressor(ac, threshold, ratio, knee, attack, release) {
+  const node = getNodeFromPool('compressor', () => new DynamicsCompressorNode(ac, {}));
   const options = {
     threshold: threshold ?? -3,
     ratio: ratio ?? 10,
@@ -152,7 +154,10 @@ export function getCompressor(ac, threshold, ratio, knee, attack, release) {
     attack: attack ?? 0.005,
     release: release ?? 0.05,
   };
-  return new DynamicsCompressorNode(ac, options);
+  Object.entries(options).forEach(([key, value]) => {
+    node[key].value = value;
+  });
+  return node;
 }
 
 // changes the default values of the envelope based on what parameters the user has defined
@@ -167,6 +172,7 @@ export const getADSRValues = (params, curve = 'linear', defaultValues) => {
   if (a == null && d == null && s == null && r == null) {
     return defaultValues ?? [envmin, envmin, envmax, releaseMin];
   }
+
   const sustain = s != null ? s : (a != null && d == null) || (a == null && d == null) ? envmax : envmin;
   return [Math.max(a ?? 0, envmin), Math.max(d ?? 0, envmin), Math.min(sustain, envmax), Math.max(r ?? 0, releaseMin)];
 };
@@ -233,10 +239,12 @@ export function createFilter(context, start, end, params, cps, cycle) {
     filter = getWorklet(context, 'ladder-processor', { frequency, q, drive });
     frequencyParam = filter.parameters.get('frequency');
   } else {
-    filter = context.createBiquadFilter();
+    const factory = () => context.createBiquadFilter();
+    filter = getNodeFromPool('filter', factory);
     filter.type = type;
-    filter.Q.value = q;
-    filter.frequency.value = frequency;
+    Object.entries({ Q: q, frequency }).forEach(([key, value]) => {
+      filter[key].value = value;
+    });
     frequencyParam = filter.frequency;
   }
   const envelopeValues = [params.attack, params.decay, params.sustain, params.release];
@@ -461,10 +469,11 @@ export function applyFM(param, value, begin) {
           nodes[`fm_${idx}`] = [osc];
         }
         const { input, output, freq, osc, toCleanup } = fms[idx];
-        const g = gainNode(amt * freq);
-        io.push(isMod ? output.connect(g) : input);
-        cleanupOnEnd(osc, [...toCleanup, g]);
-        nodes[`fm_${idx}_gain`] = [g];
+        const gAmt = gainNode(amt);
+        const gFreq = gainNode(freq);
+        io.push(isMod ? output.connect(gAmt).connect(gFreq) : input);
+        cleanupOnEnd(osc, [...toCleanup, gAmt, gFreq]);
+        nodes[`fm_${idx}_gain`] = [gAmt];
       }
       if (!io[1]) {
         logger(
