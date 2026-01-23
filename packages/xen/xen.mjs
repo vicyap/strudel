@@ -58,6 +58,29 @@ function xenOffset(xenScale, offset, index = 0) {
 // to an edostep within the scale. Returns the pattern with
 // values mapped to the frequencies associated with the given edosteps
 // scaleNameOrRatios: string || number[], steps?: number
+
+/**
+ * Assumes a numerical pattern of EDO steps. Returns a new pattern with all values
+ * mapped to their associated frequency
+ * 
+ * @name xen
+ * @returns Pattern
+ * @memberof Pattern
+ * @param {(string | number[] )} scaleNameOrRatios
+ * @tags music_theory
+ * @example
+ * "0 8 18".xen("31edo").freq().piano()
+ * @example
+ * // You can also use xen with frequency ratios. 
+ * // This is equivalent to the above:
+ * "0 1 2".xen([
+ * Math.pow(2, 0/31),
+ * Math.pow(2, 8/31),
+ * Math.pow(2, 18/31),
+ * ]).freq().piano()
+ */
+
+// TODO support tunings defined in './tunejs.js'
 export const xen = register('xen', function (scaleNameOrRatios, pat) {
   return pat.withHap((hap) => {
     const scale = getXenScale(scaleNameOrRatios);

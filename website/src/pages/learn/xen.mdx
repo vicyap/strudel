@@ -6,7 +6,7 @@ layout: ../../layouts/MainLayout.astro
 import { MiniRepl } from '../../docs/MiniRepl';
 import { JsDoc } from '../../docs/JsDoc';
 
-# Xen Harmonic Functions
+# Xen Harmonic Functions (experimental)
 
 These functions allow the use of scales other than your typical chromatic 12 based ones.
 
@@ -93,3 +93,14 @@ Note the legato and reverb effects make sure the sound of the strumming gets to 
 tones sound even more alive, too.
 
 The `tranh3` tuning has a similar set of notes, with two clashing. You might trying plugging that in above and see if you find a favorite strumming pattern.
+
+### xen(scaleOrRatios)
+
+<JsDoc client:idle name="Pattern.xen" h={0} />
+
+{/* <MiniRepl
+  client:idle
+  tune={`
+  "0 8 18".xen("31edo").freq().piano()
+  `}
+/> */}
