@@ -7,12 +7,16 @@ This program is free software: you can redistribute it and/or modify it under th
 import Tune from './tunejs.js';
 import { register } from '@strudel/core';
 
+// Tune.scale seems to be in ratio format
+// 
+
 export const tune = register('tune', (scale, pat) => {
   const tune = new Tune();
   if (!tune.isValidScale(scale)) {
     throw new Error('not a valid tune.js scale name: "' + scale + '". See http://abbernie.github.io/tune/scales.html');
   }
   tune.loadScale(scale);
+  // if the tonic is a frequency, why are we putting in "1"
   tune.tonicize(1);
   return pat.withHap((hap) => {
     return hap.withValue(() => tune.note(hap.value));
