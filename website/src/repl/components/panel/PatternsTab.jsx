@@ -8,7 +8,7 @@ import {
   useViewingPatternData,
   userPattern,
 } from '../../../user_pattern_utils.mjs';
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { getMetadata } from '../../../metadata_parser.js';
 import { useExamplePatterns } from '../../useExamplePatterns.jsx';
 import { parseJSON, isUdels } from '../../util.mjs';
@@ -18,7 +18,7 @@ import { Pagination } from '../pagination/Pagination.jsx';
 import { useState } from 'react';
 import { useDebounce } from '../usedebounce.jsx';
 import cx from '@src/cx.mjs';
-import { Textbox } from '../textbox/Textbox.jsx';
+import { Textbox } from '@src/repl/components/panel/SettingsTab.jsx';
 
 export function PatternLabel({ pattern } /* : { pattern: Tables<'code'> } */) {
   const meta = useMemo(() => getMetadata(pattern.code), [pattern]);
@@ -43,7 +43,7 @@ function PatternButton({ showOutline, onClick, pattern, showHiglight }) {
       className={cx(
         'mr-4 hover:opacity-50 cursor-pointer block',
         showOutline && 'outline outline-1',
-        showHiglight && 'bg-selection',
+        showHiglight && 'ring-selection',
       )}
       onClick={onClick}
     >
@@ -53,11 +53,10 @@ function PatternButton({ showOutline, onClick, pattern, showHiglight }) {
 }
 
 function PatternButtons({ patterns, activePattern, onClick, started }) {
-  const viewingPatternStore = useViewingPatternData();
-  const viewingPatternData = parseJSON(viewingPatternStore);
+  const viewingPatternData = useViewingPatternData();
   const viewingPatternID = viewingPatternData.id;
   return (
-    <div className="">
+    <div className="p-2">
       {Object.values(patterns)
         .reverse()
         .map((pattern) => {
@@ -83,8 +82,8 @@ const updateCodeWindow = (context, patternData, reset = false) => {
 export function PatternsTab({ context }) {
   const [search, setSearch] = useState('');
   const activePattern = useActivePattern();
-  const viewingPatternStore = useViewingPatternData();
-  const viewingPatternData = parseJSON(viewingPatternStore);
+  const viewingPatternData = useViewingPatternData();
+
   const { userPatterns, patternAutoStart } = useSettings();
   const viewingPatternID = viewingPatternData?.id;
 
@@ -121,74 +120,71 @@ export function PatternsTab({ context }) {
         );
       }),
     );
-  }, [search, viewingPatternStore]);
+  }, [search, userPatterns]);
 
+  const importRef = useRef();
   return (
-    <div className="px-4 w-full text-foreground  space-y-2  flex flex-col overflow-hidden max-h-full h-full">
-      <div className="w-full flex">
-        <Textbox className="w-full" placeholder="Search" value={search} onChange={setSearch} />
+    <div className="w-full h-full text-foreground flex flex-col overflow-hidden">
+      <Textbox className="w-full border-0" placeholder="Search..." value={search} onChange={setSearch} />
+      <div className="px-2 shrink-0 h-8 space-x-4 flex max-w-full overflow-x-auto border-y border-muted">
+        <ActionButton
+          label="new"
+          onClick={() => {
+            const { data } = userPattern.createAndAddToDB();
+            updateCodeWindow(context, data);
+          }}
+        />
+        <ActionButton
+          label="duplicate"
+          onClick={() => {
+            const { data } = userPattern.duplicate(viewingPatternData);
+            updateCodeWindow(context, data);
+          }}
+        />
+        <ActionButton
+          label="delete"
+          onClick={() => {
+            const { data } = userPattern.delete(viewingPatternID);
+            updateCodeWindow(context, { ...data, collection: userPattern.collection });
+          }}
+        />
+        <input
+          ref={importRef}
+          style={{ display: 'none' }}
+          type="file"
+          multiple
+          accept="text/plain,text/x-markdown,application/json"
+          onChange={(e) => importPatterns(e.target.files)}
+        />
+        <ActionButton label="import" onClick={() => importRef.current.click()} />
+        <ActionButton label="export" onClick={exportPatterns} />
+
+        <ActionButton
+          label="delete-all"
+          onClick={() => {
+            const { data } = userPattern.clearAll();
+            updateCodeWindow(context, data);
+          }}
+        />
       </div>
-      <div className="flex flex-col gap-2 flex-grow overflow-hidden h-full pb-2 ">
-        <div className="pr-4 space-x-4  flex max-w-full overflow-x-auto">
-          <ActionButton
-            label="new"
-            onClick={() => {
-              const { data } = userPattern.createAndAddToDB();
-              updateCodeWindow(context, data);
-            }}
-          />
-          <ActionButton
-            label="duplicate"
-            onClick={() => {
-              const { data } = userPattern.duplicate(viewingPatternData);
-              updateCodeWindow(context, data);
-            }}
-          />
-          <ActionButton
-            label="delete"
-            onClick={() => {
-              const { data } = userPattern.delete(viewingPatternID);
-              updateCodeWindow(context, { ...data, collection: userPattern.collection });
-            }}
-          />
-          <label className="hover:opacity-50 cursor-pointer">
-            <input
-              style={{ display: 'none' }}
-              type="file"
-              multiple
-              accept="text/plain,text/x-markdown,application/json"
-              onChange={(e) => importPatterns(e.target.files)}
-            />
-            import
-          </label>
-          <ActionButton label="export" onClick={exportPatterns} />
 
-          <ActionButton
-            label="delete-all"
-            onClick={() => {
-              const { data } = userPattern.clearAll();
-              updateCodeWindow(context, data);
-            }}
-          />
-        </div>
+      <div className="overflow-auto">
+        {/* bg-background */}
+        {/* {patternFilter === patternFilterName.user && ( */}
+        <PatternButtons
+          onClick={(id) => {
+            updateCodeWindow(context, { ...userPatterns[id], collection: userPattern.collection }, patternAutoStart);
 
-        <div className="overflow-auto h-full bg-background p-2 rounded-md">
-          {/* {patternFilter === patternFilterName.user && ( */}
-          <PatternButtons
-            onClick={(id) => {
-              updateCodeWindow(context, { ...userPatterns[id], collection: userPattern.collection }, patternAutoStart);
-
-              if (context.started && activePattern === id) {
-                context.handleEvaluate();
-              }
-            }}
-            patterns={visiblePatterns}
-            started={context.started}
-            activePattern={activePattern}
-            viewingPatternID={viewingPatternID}
-          />
-          {/* )} */}
-        </div>
+            if (context.started && activePattern === id) {
+              context.handleEvaluate();
+            }
+          }}
+          patterns={visiblePatterns}
+          started={context.started}
+          activePattern={activePattern}
+          viewingPatternID={viewingPatternID}
+        />
+        {/* )} */}
       </div>
     </div>
   );

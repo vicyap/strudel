@@ -3046,6 +3046,7 @@ registerSubControls('lfo', [
   ['skew', 'sk'],
   ['curve', 'cu'],
   ['sync', 's'],
+  ['retrig', 'rt'],
   ['fxi'],
 ]);
 registerSubControls('env', [
@@ -3132,13 +3133,14 @@ Pattern.prototype.modulate = function (type, config, idPat) {
  * @param {string | Pattern} [config.control] Node to modulate. Aliases: c
  * @param {string | Pattern} [config.subControl] Sub-control name to append to the control key. Aliases: sc
  * @param {number | Pattern} [config.rate] Modulation rate. Aliases: r
+ * @param {number | Pattern} [config.sync] Tempo-synced modulation rate. Aliases: s
  * @param {number | Pattern} [config.depth] Relative modulation depth. Aliases: dep, dr
  * @param {number | Pattern} [config.depthabs] Absolute modulation depth. Aliases: da
  * @param {number | Pattern} [config.dcoffset] DC offset / bias for the waveform. Aliases: dc
  * @param {number | Pattern} [config.shape] Shape index. Aliases: sh
  * @param {number | Pattern} [config.skew] Skew amount. Aliases: sk
  * @param {number | Pattern} [config.curve] Exponential curve amount. Aliases: cu
- * @param {number | Pattern} [config.sync] Tempo-synced modulation rate. Aliases: s
+ * @param {number | Pattern} [config.retrig] If > 0.5, the LFO will retrigger on each event. Aliases: rt
  * @param {number | Pattern} [config.fxi] FX index to target
  * @param {string | Pattern} id ID to use for this modulator
  * @returns Pattern

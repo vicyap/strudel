@@ -1055,91 +1055,88 @@ function _composeOp(a, b, func) {
   return func(a, b);
 }
 
-// Make composers
-(function () {
-  // pattern composers
-  const composers = {
-    set: [(a, b) => b],
-    keep: [(a) => a],
-    keepif: [(a, b) => (b ? a : undefined)],
+// pattern composers
+const COMPOSERS = {
+  set: [(a, b) => b],
+  keep: [(a) => a],
+  keepif: [(a, b) => (b ? a : undefined)],
 
-    // numerical functions
-    /**
-     *
-     * Assumes a pattern of numbers. Adds the given number to each item in the pattern.
-     * @name add
-     * @memberof Pattern
-     * @tags math
-     * @example
-     * // Here, the triad 0, 2, 4 is shifted by different amounts
-     * n("0 2 4".add("<0 3 4 0>")).scale("C:major")
-     * // Without add, the equivalent would be:
-     * // n("<[0 2 4] [3 5 7] [4 6 8] [0 2 4]>").scale("C:major")
-     * @example
-     * // You can also use add with notes:
-     * note("c3 e3 g3".add("<0 5 7 0>"))
-     * // Behind the scenes, the notes are converted to midi numbers:
-     * // note("48 52 55".add("<0 5 7 0>"))
-     */
-    add: [numeralArgs((a, b) => a + b)], // support string concatenation
-    /**
-     *
-     * Like add, but the given numbers are subtracted.
-     * @name sub
-     * @memberof Pattern
-     * @tags math
-     * @example
-     * n("0 2 4".sub("<0 1 2 3>")).scale("C4:minor")
-     * // See add for more information.
-     */
-    sub: [numeralArgs((a, b) => a - b)],
-    /**
-     *
-     * Multiplies each number by the given factor.
-     * @name mul
-     * @memberof Pattern
-     * @tags math
-     * @example
-     * "<1 1.5 [1.66, <2 2.33>]>*4".mul(150).freq()
-     */
-    mul: [numeralArgs((a, b) => a * b)],
-    /**
-     *
-     * Divides each number by the given factor.
-     * @name div
-     * @memberof Pattern
-     * @tags math
-     */
-    div: [numeralArgs((a, b) => a / b)],
-    mod: [numeralArgs(_mod)],
-    pow: [numeralArgs(Math.pow)],
-    log2: [numeralArgs(Math.log2)],
-    band: [numeralArgs((a, b) => a & b)],
-    bor: [numeralArgs((a, b) => a | b)],
-    bxor: [numeralArgs((a, b) => a ^ b)],
-    blshift: [numeralArgs((a, b) => a << b)],
-    brshift: [numeralArgs((a, b) => a >> b)],
+  // numerical functions
+  /**
+   *
+   * Assumes a pattern of numbers. Adds the given number to each item in the pattern.
+   * @name add
+   * @memberof Pattern
+   * @tags math
+   * @example
+   * // Here, the triad 0, 2, 4 is shifted by different amounts
+   * n("0 2 4".add("<0 3 4 0>")).scale("C:major")
+   * // Without add, the equivalent would be:
+   * // n("<[0 2 4] [3 5 7] [4 6 8] [0 2 4]>").scale("C:major")
+   * @example
+   * // You can also use add with notes:
+   * note("c3 e3 g3".add("<0 5 7 0>"))
+   * // Behind the scenes, the notes are converted to midi numbers:
+   * // note("48 52 55".add("<0 5 7 0>"))
+   */
+  add: [numeralArgs((a, b) => a + b)], // support string concatenation
+  /**
+   *
+   * Like add, but the given numbers are subtracted.
+   * @name sub
+   * @memberof Pattern
+   * @tags math
+   * @example
+   * n("0 2 4".sub("<0 1 2 3>")).scale("C4:minor")
+   * // See add for more information.
+   */
+  sub: [numeralArgs((a, b) => a - b)],
+  /**
+   *
+   * Multiplies each number by the given factor.
+   * @name mul
+   * @memberof Pattern
+   * @tags math
+   * @example
+   * "<1 1.5 [1.66, <2 2.33>]>*4".mul(150).freq()
+   */
+  mul: [numeralArgs((a, b) => a * b)],
+  /**
+   *
+   * Divides each number by the given factor.
+   * @name div
+   * @memberof Pattern
+   * @tags math
+   */
+  div: [numeralArgs((a, b) => a / b)],
+  mod: [numeralArgs(_mod)],
+  pow: [numeralArgs(Math.pow)],
+  log2: [numeralArgs(Math.log2)],
+  band: [numeralArgs((a, b) => a & b)],
+  bor: [numeralArgs((a, b) => a | b)],
+  bxor: [numeralArgs((a, b) => a ^ b)],
+  blshift: [numeralArgs((a, b) => a << b)],
+  brshift: [numeralArgs((a, b) => a >> b)],
 
-    // TODO - force numerical comparison if both look like numbers?
-    lt: [(a, b) => a < b],
-    gt: [(a, b) => a > b],
-    lte: [(a, b) => a <= b],
-    gte: [(a, b) => a >= b],
-    eq: [(a, b) => a == b],
-    eqt: [(a, b) => a === b],
-    ne: [(a, b) => a != b],
-    net: [(a, b) => a !== b],
-    and: [(a, b) => a && b],
-    or: [(a, b) => a || b],
+  // TODO - force numerical comparison if both look like numbers?
+  lt: [(a, b) => a < b],
+  gt: [(a, b) => a > b],
+  lte: [(a, b) => a <= b],
+  gte: [(a, b) => a >= b],
+  eq: [(a, b) => a == b],
+  eqt: [(a, b) => a === b],
+  ne: [(a, b) => a != b],
+  net: [(a, b) => a !== b],
+  and: [(a, b) => a && b],
+  or: [(a, b) => a || b],
 
-    //  bitwise ops
-    func: [(a, b) => b(a)],
-  };
+  //  bitwise ops
+  func: [(a, b) => b(a)],
+};
 
-  const hows = ['In', 'Out', 'Mix', 'Squeeze', 'SqueezeOut', 'Reset', 'Restart', 'Poly'];
-
+const _setupAlignments = () => {
   // generate methods to do what and how
-  for (const [what, [op, preprocess]] of Object.entries(composers)) {
+  for (const [what, [op, preprocess]] of Object.entries(COMPOSERS)) {
     // make plain version, e.g. pat._add(value) adds that plain value
     // to all the values in pat
     Pattern.prototype['_' + what] = function (value) {
@@ -1148,16 +1145,18 @@ function _composeOp(a, b, func) {
 
     // make patternified monster version
     Object.defineProperty(Pattern.prototype, what, {
+      // Set to configurable so we can update if the default alignment changes
+      configurable: true,
       // a getter that returns a function, so 'pat' can be
       // accessed by closures that are methods of that function..
       get: function () {
         const pat = this;
 
         // wrap the 'in' function as default behaviour
-        const wrapper = (...other) => pat[what]['in'](...other);
+        const wrapper = (...other) => pat[what][DEFAULT_ALIGNMENT](...other);
 
         // add methods to that function for each behaviour
-        for (const how of hows) {
+        for (const how of ALIGNMENTS) {
           wrapper[how.toLowerCase()] = function (...other) {
             var howpat = pat;
             other = sequence(other);
@@ -1182,15 +1181,23 @@ function _composeOp(a, b, func) {
         return wrapper;
       },
     });
-
-    // Default op to 'set', e.g. pat.squeeze(pat2) = pat.set.squeeze(pat2)
-    for (const how of hows) {
-      Pattern.prototype[how.toLowerCase()] = function (...args) {
-        return this.set[how.toLowerCase()](args);
-      };
-    }
   }
+};
 
+let DEFAULT_ALIGNMENT = 'in';
+const ALIGNMENTS = ['In', 'Out', 'Mix', 'Squeeze', 'SqueezeOut', 'Reset', 'Restart', 'Poly'];
+const ALIGNMENT_KEYS = ALIGNMENTS.map((how) => how.toLowerCase());
+
+// Make composers
+(function () {
+  _setupAlignments();
+
+  // Default op to 'set', e.g. pat.squeeze(pat2) = pat.set.squeeze(pat2)
+  for (const how of ALIGNMENTS) {
+    Pattern.prototype[how.toLowerCase()] = function (...args) {
+      return this.set[how.toLowerCase()](args);
+    };
+  }
   // binary composers
   /**
    * Applies the given structure to the pattern:
@@ -1248,6 +1255,27 @@ function _composeOp(a, b, func) {
     return this.keep.restart(...args);
   };
 })();
+
+/**
+ * Sets the default method of combining events from two patterns (aka [alignment](https://strudel.cc/technical-manual/alignment/)) in Strudel.
+ * The default method is 'in', meaning that patterns to the left will (typically) dictate the event timings when combined with patterns to the right.
+ * By changing alignment to 'out', the opposite will happen. With 'mix', they will combine their event timings.
+ *
+ * Note that we say the _default_ method, because alignments can also be set explicitly with calls like
+ * 'add.mix', 'set.squeeze', etc.
+ *
+ * @param {string} method Default join method to use. Options: 'in', 'out', 'mix', 'squeeze', 'squeezeout', 'reset', 'restart', 'poly'
+ * @example
+ * setDefaultJoin('mix') // also try 'in', 'out', 'squeeze', etc.
+ * s("saw").vel("1 0.5").note("F A C E").delay("0 0.2 0.3")
+ */
+export const setDefaultJoin = (alignment) => {
+  alignment = alignment?.toLowerCase();
+  if (DEFAULT_ALIGNMENT !== alignment && ALIGNMENT_KEYS.includes(alignment)) {
+    DEFAULT_ALIGNMENT = alignment;
+    _setupAlignments();
+  }
+};
 
 // aliases
 export const polyrhythm = stack;

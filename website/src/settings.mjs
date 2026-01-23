@@ -2,6 +2,7 @@ import { persistentMap } from '@nanostores/persistent';
 import { useStore } from '@nanostores/react';
 import { register } from '@strudel/core';
 import { isUdels } from './repl/util.mjs';
+import { computed } from 'nanostores';
 
 export const audioEngineTargets = {
   webaudio: 'webaudio',
@@ -38,12 +39,12 @@ export const defaultSettings = {
   latestCode: '',
   isZen: false,
   soundsFilter: soundFilterType.ALL,
+  referenceTag: 'all',
   patternFilter: 'community',
   // panelPosition: window.innerWidth > 1000 ? 'right' : 'bottom', //FIX: does not work on astro
   panelPosition: 'right',
   isPanelPinned: false,
   isPanelOpen: true,
-  togglePanelTrigger: 'click', //click | hover
   userPatterns: '{}',
   prebakeScript: '',
   audioEngineTarget: audioEngineTargets.webaudio,
@@ -64,11 +65,7 @@ const settings_key = `strudel-settings${instance > 0 ? instance : ''}`;
 
 export const settingsMap = persistentMap(settings_key, defaultSettings);
 
-export const parseBoolean = (booleanlike) => ([true, 'true'].includes(booleanlike) ? true : false);
-
-export function useSettings() {
-  const state = useStore(settingsMap);
-
+export const $settings = computed(settingsMap, (state) => {
   const userPatterns = JSON.parse(state.userPatterns);
   Object.keys(userPatterns).forEach((key) => {
     const data = userPatterns[key];
@@ -105,6 +102,12 @@ export function useSettings() {
         ? true
         : parseBoolean(state.patternAutoStart),
   };
+});
+
+export const parseBoolean = (booleanlike) => ([true, 'true'].includes(booleanlike) ? true : false);
+
+export function useSettings() {
+  return useStore($settings);
 }
 
 export const setActiveFooter = (tab) => settingsMap.setKey('activeFooter', tab);

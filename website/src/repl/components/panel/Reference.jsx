@@ -1,7 +1,8 @@
 import { memo, useEffect, useMemo, useState, Fragment } from 'react';
 
 import jsdocJson from '../../../../../doc.json';
-import { Textbox } from '../textbox/Textbox';
+import { Textbox } from '@src/repl/components/panel/SettingsTab';
+import { settingsMap, useSettings } from '@src/settings.mjs';
 
 const isValid = ({ name, description }) => name && !name.startsWith('_') && !!description;
 
@@ -37,6 +38,19 @@ const availableFunctions = (() => {
   return functions.sort((a, b) => /* a.meta.filename.localeCompare(b.meta.filename) +  */ a.name.localeCompare(b.name));
 })();
 
+const tagCounts = {};
+// const tagOptions = { all: `all (${availableFunctions.length})` };
+const tagOptions = { all: `all` };
+for (const doc of availableFunctions) {
+  (doc.tags || ['untagged']).forEach((t) => {
+    if (typeof t === 'string' && t) {
+      tagCounts[t] = (tagCounts[t] || 0) + 1;
+      //tagOptions[t] = `${t} (${tagCounts[t]})`;
+      tagOptions[t] = t;
+    }
+  });
+}
+
 const getInnerText = (html) => {
   var div = document.createElement('div');
   div.innerHTML = html;
@@ -45,40 +59,38 @@ const getInnerText = (html) => {
 
 export const Reference = memo(function Reference() {
   const [search, setSearch] = useState('');
-  const [selectedTag, setSelectedTag] = useState(null);
   const [selectedFunction, setSelectedFunction] = useState(null);
+  const { referenceTag } = useSettings();
 
   const toggleTag = (tag) => {
-    if (selectedTag === tag) {
-      setSelectedTag(null);
+    if (referenceTag === tag) {
+      setReferenceTag('all');
     } else {
-      setSelectedTag(tag);
+      setReferenceTag(tag);
     }
   };
 
   const searchVisibleFunctions = useMemo(() => {
     return availableFunctions.filter((entry) => {
-      if (selectedTag) {
-        if (!(entry.tags || ['untagged']).includes(selectedTag)) {
+      if (referenceTag && referenceTag !== 'all') {
+        if (!(entry.tags || ['untagged']).includes(referenceTag)) {
           return false;
         }
       }
-
       if (!search) {
         return true;
       }
-
       const lowerCaseSearch = search.toLowerCase();
       return (
         entry.name.toLowerCase().includes(lowerCaseSearch) ||
         (entry.synonyms?.some((s) => s.toLowerCase().includes(lowerCaseSearch)) ?? false)
       );
     });
-  }, [search, selectedTag]);
+  }, [search, referenceTag]);
 
   const detailVisibleFunctions = useMemo(() => {
     return searchVisibleFunctions.filter((x) => {
-      if (selectedTag === null) {
+      if (referenceTag === null || referenceTag === 'all') {
         if (search) {
           return true;
         }
@@ -87,19 +99,10 @@ export const Reference = memo(function Reference() {
         return true;
       }
     });
-  }, [searchVisibleFunctions, selectedFunction, selectedTag]);
-
-  const tagCounts = {};
-  for (const doc of availableFunctions) {
-    (doc.tags || ['untagged']).forEach((t) => {
-      if (typeof t === 'string' && t) {
-        tagCounts[t] = (tagCounts[t] || 0) + 1;
-      }
-    });
-  }
+  }, [searchVisibleFunctions, selectedFunction, referenceTag]);
 
   const onSearchTagFilterClick = () => {
-    setSelectedTag(null);
+    setReferenceTag('all');
     setSelectedFunction(null);
   };
 
@@ -111,36 +114,44 @@ export const Reference = memo(function Reference() {
     }
   }, [selectedFunction]);
 
+  let setReferenceTag = (value) => settingsMap.setKey('referenceTag', value);
+
   return (
-    <div className="flex h-full w-full p-2 overflow-hidden">
-      <div className="h-full text-foreground flex flex-col gap-3 w-1/3 ">
+    <div className="flex h-full w-full overflow-hidden">
+      <div className="h-full text-foreground flex flex-col w-1/3  border-r border-muted">
+        {/* bg-background */}
         <div className="w-full flex">
           <Textbox
-            className="w-full"
-            placeholder="Search"
+            className="w-full border-0 border-b border-muted"
+            placeholder="Search..."
             value={search}
             onChange={(e) => {
               setSelectedFunction(null);
+              setReferenceTag('all');
               setSearch(e);
             }}
           />
         </div>
-        {selectedTag && (
+
+        {/* <div className="flex shrink-0 flex-wrap w-full overflow-auto border-y border-muted">
+          <ButtonGroup wrap value={referenceTag} onChange={setReferenceTag} items={tagOptions}></ButtonGroup>
+        </div> */}
+        {referenceTag && referenceTag !== 'all' && (
           <div className="w-72">
             <span
-              className="text-foreground border-2 border-gray-500 px-1 py-0.5 my-2 rounded-md cursor-pointer font-sans"
+              className="text-foreground border border-muted border-t-0 border-l-0 px-1 py-0.5 my-2 cursor-pointer font-sans"
               onClick={onSearchTagFilterClick}
             >
-              {selectedTag}
+              {referenceTag}
             </span>
           </div>
         )}
-        <div className="flex flex-col h-full overflow-y-auto gap-1.5 bg-background bg-opacity-50 rounded-md">
+        <div className="h-full p-2 overflow-y-auto bg-opacity-50">
           {searchVisibleFunctions.map((entry, i) => (
             <Fragment key={`entry-${entry.name}`}>
               <a
                 className={
-                  'cursor-pointer flex-none hover:bg-lineHighlight overflow-x-hidden px-1 text-ellipsis ' +
+                  'cursor-pointer hover:opacity-50 text-ellipsis block' +
                   (entry.name === selectedFunction ? 'bg-lineHighlight font-bold' : '')
                 }
                 onClick={() => {
@@ -158,24 +169,25 @@ export const Reference = memo(function Reference() {
         </div>
       </div>
       <div
-        className="break-normal flex-col overflow-y-auto overflow-x-hidden p-2 flex relative"
+        className="w-2/3 break-normal flex-col overflow-y-auto overflow-x-hidden p-2 flex relative"
         id="reference-container"
       >
-        <div className="prose dark:prose-invert min-w-full px-1 ">
+        <div className="prose dark:prose-invert min-w-full px-1 text-sm">
           <h2>API Reference</h2>
           <p className="font-sans text-md">
             This is the long list of functions you can use. Remember that you don't need to remember all of those and
             that you can already make music with a small set of functions!
           </p>
           <div>
+            {/* <ButtonGroup wrap value={referenceTag} onChange={setReferenceTag} items={tagOptions}/>*/}
             {Object.entries(tagCounts)
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([t, count]) => (
                 <span key={t}>
                   <a
                     className={[
-                      'select-none text-white border-2 border-gray-500 px-1 py-0.5 my-2 cursor-pointer text-sm/8 rounded-md no-underline font-sans',
-                      `${selectedTag === t ? 'bg-gray-500 text-black' : ''}`,
+                      'select-none text-white border border-muted px-1 py-0.5 my-2 cursor-pointer text-sm/8 no-underline font-sans',
+                      `${referenceTag === t ? 'bg-muted text-foreground' : ''}`,
                     ].join(' ')}
                     onClick={() => toggleTag(t)}
                   >
@@ -187,11 +199,11 @@ export const Reference = memo(function Reference() {
           {detailVisibleFunctions.map((entry, i) => (
             <section key={i} className="font-sans">
               <div className="flex flex-row items-center mt-8 justify-between">
-                <h3 className="font-mono my-0" id={`doc-${entry.name}`}>
+                <h3 className="font-mono my-0 pt-4" id={`doc-${entry.name}`}>
                   {entry.name}
                 </h3>
                 {entry.tags && (
-                  <span className="ml-2 text-xs text-gray-400 border-2 border-gray-500 rounded-md px-1 py-0.5">
+                  <span className="ml-2 text-xs text-foreground border border-muted px-1 py-0.5">
                     {entry.tags.join(', ')}
                   </span>
                 )}
@@ -201,7 +213,7 @@ export const Reference = memo(function Reference() {
                   Synonyms: <code>{entry.synonyms_text}</code>
                 </p>
               )}
-              {/* <small>{entry.meta.filename}</small> */}
+
               <p dangerouslySetInnerHTML={{ __html: entry.description }}></p>
               <ul>
                 {entry.params?.map(({ name, type, description }, i) => (
@@ -211,12 +223,12 @@ export const Reference = memo(function Reference() {
                 ))}
               </ul>
               {entry.examples?.map((example, j) => (
-                <pre className="bg-background" key={j}>
+                <pre className="bg-background border border-muted" key={j}>
                   {example}
                 </pre>
               ))}
             </section>
-          )) || <p className="font-sans">Searcb or select a tag to get started.</p>}
+          )) || <p className="font-sans">Search or select a tag to get started.</p>}
           {detailVisibleFunctions.length > 0 && <div className="h-screen" />}
         </div>
       </div>
