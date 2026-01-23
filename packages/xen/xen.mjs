@@ -6,6 +6,8 @@ This program is free software: you can redistribute it and/or modify it under th
 
 import { register, _mod, parseNumeral } from '@strudel/core';
 
+
+// returns a list of frequency ratios for given edo scale
 export function edo(name) {
   if (!/^[1-9]+[0-9]*edo$/.test(name)) {
     throw new Error('not an edo scale: "' + name + '"');
@@ -18,12 +20,15 @@ const presets = {
   '12ji': [1 / 1, 16 / 15, 9 / 8, 6 / 5, 5 / 4, 4 / 3, 45 / 32, 3 / 2, 8 / 5, 5 / 3, 16 / 9, 15 / 8],
 };
 
+// Given a base frequency such as 220 and an edo scale, returns
+// an array of frequencies representing the given edo scale in that base
 function withBase(freq, scale) {
   return scale.map((r) => r * freq);
 }
 
 const defaultBase = 220;
 
+// Assumes a base of 220. Returns a filtered scale based on 'indices'
 function getXenScale(scale, indices) {
   if (typeof scale === 'string') {
     if (/^[1-9]+[0-9]*edo$/.test(scale)) {
@@ -41,12 +46,17 @@ function getXenScale(scale, indices) {
   return scale.filter((_, i) => indices.includes(i));
 }
 
+
 function xenOffset(xenScale, offset, index = 0) {
   const i = _mod(index + offset, xenScale.length);
   const oct = Math.floor(offset / xenScale.length);
   return xenScale[i] * Math.pow(2, oct);
 }
 
+// accepts a scale name such as 31edo, and a pattern
+// pattern expected to follow format such that a value can be mapped
+// to an edostep within the scale. Returns the pattern with
+// values mapped to the frequencies associated with the given edosteps
 // scaleNameOrRatios: string || number[], steps?: number
 export const xen = register('xen', function (scaleNameOrRatios, pat) {
   return pat.withHap((hap) => {
@@ -56,6 +66,7 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
   });
 });
 
+// not sure there's a point to having this and the above, seems like a proto version of the above.
 export const tuning = register('tuning', function (ratios, pat) {
   return pat.withHap((hap) => {
     const frequency = xenOffset(ratios, parseNumeral(hap.value));
