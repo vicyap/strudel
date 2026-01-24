@@ -53,7 +53,6 @@ function getXenScale(scale, indices) {
   return scale.filter((_, i) => indices.includes(i));
 }
 
-
 function xenOffset(xenScale, offset, index = 0) {
   const i = _mod(index + offset, xenScale.length);
   const oct = Math.floor(offset / xenScale.length);
