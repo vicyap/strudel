@@ -5,7 +5,7 @@ This program is free software: you can redistribute it and/or modify it under th
 */
 
 import { register, _mod, parseNumeral, removeUndefineds } from '@strudel/core';
-import Tune from './tunejs.js'
+import Tune from './tunejs.js';
 
 // returns a list of frequency ratios for given edo scale
 export function edo(name) {
@@ -31,18 +31,16 @@ const defaultBase = 220;
 // Assumes a base of 220. Returns a filtered scale based on 'indices'
 // NOTE: indices functionality is unused
 function getXenScale(scale, indices) {
-  let tune = new Tune()
+  let tune = new Tune();
   if (typeof scale === 'string') {
     if (/^[1-9]+[0-9]*edo$/.test(scale)) {
       scale = edo(scale);
     } else if (presets[scale]) {
       scale = presets[scale];
-    } 
-    else if (tune.isValidScale(scale)) {
-      tune.loadScale(scale)
-      scale = tune.scale
-    } 
-    else {
+    } else if (tune.isValidScale(scale)) {
+      tune.loadScale(scale);
+      scale = tune.scale;
+    } else {
       throw new Error('unknown scale name: "' + scale + '"');
     }
   }
@@ -52,7 +50,6 @@ function getXenScale(scale, indices) {
   }
   return scale.filter((_, i) => indices.includes(i));
 }
-
 
 function xenOffset(xenScale, offset, index = 0) {
   const i = _mod(index + offset, xenScale.length);
@@ -68,7 +65,7 @@ function xenOffset(xenScale, offset, index = 0) {
 
 /**
  * Assumes a numerical pattern of EDO steps. Accepts all scale names of `tune` as well as any arbitrary edo scale. Returns a new pattern with all values mapped to their associated frequency, assuming a base frequency of 220hz.
- * 
+ *
  * @name xen
  * @returns Pattern
  * @memberof Pattern
@@ -78,18 +75,18 @@ function xenOffset(xenScale, offset, index = 0) {
  * // A major tried in 31edo:
  * "0 8 18".xen("31edo").freq().piano()
  * @example
- * // You can also use xen with frequency ratios. 
+ * // You can also use xen with frequency ratios.
  * // This is equivalent to the above:
  * "0 1 2".xen([
- * Math.pow(2, 0/31),
- * Math.pow(2, 8/31),
- * Math.pow(2, 18/31),
+ *   Math.pow(2, 0/31),
+ *   Math.pow(2, 8/31),
+ *   Math.pow(2, 18/31),
  * ]).freq().piano()
- * @example 
- * // xen also supports all scale names that 
+ * @example
+ * // xen also supports all scale names that
  * // tune does:
  * "0 1 2 3 4 5".xen("hexany15").freq()
- * // equiv to: 
+ * // equiv to:
  * // "0 1 2 3 4 5".tune("hexany15").mul("220").freq()
  */
 

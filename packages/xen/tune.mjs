@@ -7,7 +7,6 @@ This program is free software: you can redistribute it and/or modify it under th
 import Tune from './tunejs.js';
 import { register } from '@strudel/core';
 
-
 /**
  * Assumes a numerical pattern of EDO steps. Accepts a scale name or list of frequencies (see all available names at the link on the reference). Returns a new pattern with all values mapped to a frequency ratio. Similar to `xen`.
  * @name tune
@@ -17,24 +16,24 @@ import { register } from '@strudel/core';
  * @example
  * "0 1 2 3 4 5".tune("hexany15").mul("220").freq()
  * @example
- * // You can set your root to be a 
+ * // You can set your root to be a
  * // particular note with getFreq:
- * `"4 8 9 10 - - 5 7 9 11 - -".tune("tranh3")
+ * "4 8 9 10 - - 5 7 9 11 - -".tune("tranh3")
  *   .mul(getFreq('c3'))
- *   .freq().clip(.5).room(1)`
+ *   .freq().clip(.5).room(1)
  * @example
- * // You can also give tune a list of 
+ * // You can also give tune a list of
  * // frequencies to use as the scale:
  * "0 1 2 3 4".tune([
- *   261.6255653006, 
- *   302.72962012827, 
- *   350.29154279212, 
- *   405.32593044476, 
- *   469.00678383895, 
+ *   261.6255653006,
+ *   302.72962012827,
+ *   350.29154279212,
+ *   405.32593044476,
+ *   469.00678383895,
  *   523.2511306012
  * ]).mul(220).freq();
  * @tags tonal
-*/
+ */
 
 // Tune.scale seems to be in ratio format
 export const tune = register('tune', (scale, pat) => {
