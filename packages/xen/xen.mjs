@@ -29,6 +29,7 @@ function withBase(freq, scale) {
 const defaultBase = 220;
 
 // Assumes a base of 220. Returns a filtered scale based on 'indices'
+// NOTE: indices functionality is unused
 function getXenScale(scale, indices) {
   let tune = new Tune()
   if (typeof scale === 'string') {
@@ -66,14 +67,13 @@ function xenOffset(xenScale, offset, index = 0) {
 // scaleNameOrRatios: string || number[], steps?: number
 
 /**
- * Assumes a numerical pattern of EDO steps. Returns a new pattern with all values
- * mapped to their associated frequency
+ * Assumes a numerical pattern of EDO steps. Accepts all scale names of `tune` as well as any arbitrary edo scale. Returns a new pattern with all values mapped to their associated frequency, assuming a base frequency of 220hz.
  * 
  * @name xen
  * @returns Pattern
  * @memberof Pattern
  * @param {(string | number[] )} scaleNameOrRatios
- * @tags music_theory
+ * @tags tonal
  * @example
  * // A major tried in 31edo:
  * "0 8 18".xen("31edo").freq().piano()
@@ -93,8 +93,9 @@ function xenOffset(xenScale, offset, index = 0) {
  * // "0 1 2 3 4 5".tune("hexany15").mul("220").freq()
  */
 
-// TODO how do you reference another function in jsdoc (tune, above)
-// TODO support tunings defined in './tunejs.js'
+// TODO feat: change root frequency
+// TODO add explanation for what "31edo" etc. are
+// TODO (maybe): should this return freq ratios like tune does, for parity's sake?
 export const xen = register('xen', function (scaleNameOrRatios, pat) {
   return pat.withHap((hap) => {
     const scale = getXenScale(scaleNameOrRatios);
