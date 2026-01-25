@@ -40,7 +40,7 @@ export let maxPolyphony = DEFAULT_MAX_POLYPHONY;
  * start to die out in first-in-first-out order once the max polyphony has been hit
  *
  * @name setMaxPolyphony
- * @tags fx, superdough
+ * @tags superdough
  * @param {number} Max polyphony. Defaults to 128
  * @example
  * setMaxPolyphony(4)
@@ -74,7 +74,7 @@ export function applyGainCurve(val) {
  * quadratic, exponential, etc. rather than linear
  *
  * @name setGainCurve
- * @tags fx, superdough
+ * @tags amplitude, superdough
  * @param {Function} function to apply to all gain values
  * @example
  * setGainCurve((x) => x * x) // quadratic gain

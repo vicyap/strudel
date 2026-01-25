@@ -1037,6 +1037,43 @@ exports[`runs examples > example "anchor" example index 0 1`] = `
 ]
 `;
 
+exports[`runs examples > example "anchor" example index 1 1`] = `
+[
+  "[ 0/1 → 1/8 | anchor:c4 note:60 ]",
+  "[ 1/8 → 1/4 | anchor:c4 note:62 ]",
+  "[ 1/4 → 3/8 | anchor:c4 note:64 ]",
+  "[ 3/8 → 1/2 | anchor:c4 note:65 ]",
+  "[ 1/2 → 5/8 | anchor:c4 note:67 ]",
+  "[ 5/8 → 3/4 | anchor:c4 note:69 ]",
+  "[ 3/4 → 7/8 | anchor:c4 note:71 ]",
+  "[ 7/8 → 1/1 | anchor:c4 note:72 ]",
+  "[ 1/1 → 9/8 | anchor:g4 note:67 ]",
+  "[ 9/8 → 5/4 | anchor:g4 note:68 ]",
+  "[ 5/4 → 11/8 | anchor:g4 note:70 ]",
+  "[ 11/8 → 3/2 | anchor:g4 note:72 ]",
+  "[ 3/2 → 13/8 | anchor:g4 note:73 ]",
+  "[ 13/8 → 7/4 | anchor:g4 note:75 ]",
+  "[ 7/4 → 15/8 | anchor:g4 note:77 ]",
+  "[ 15/8 → 2/1 | anchor:g4 note:79 ]",
+  "[ 2/1 → 17/8 | anchor:c5 note:72 ]",
+  "[ 17/8 → 9/4 | anchor:c5 note:74 ]",
+  "[ 9/4 → 19/8 | anchor:c5 note:76 ]",
+  "[ 19/8 → 5/2 | anchor:c5 note:77 ]",
+  "[ 5/2 → 21/8 | anchor:c5 note:79 ]",
+  "[ 21/8 → 11/4 | anchor:c5 note:81 ]",
+  "[ 11/4 → 23/8 | anchor:c5 note:83 ]",
+  "[ 23/8 → 3/1 | anchor:c5 note:84 ]",
+  "[ 3/1 → 25/8 | anchor:g5 note:79 ]",
+  "[ 25/8 → 13/4 | anchor:g5 note:80 ]",
+  "[ 13/4 → 27/8 | anchor:g5 note:82 ]",
+  "[ 27/8 → 7/2 | anchor:g5 note:84 ]",
+  "[ 7/2 → 29/8 | anchor:g5 note:85 ]",
+  "[ 29/8 → 15/4 | anchor:g5 note:87 ]",
+  "[ 15/4 → 31/8 | anchor:g5 note:89 ]",
+  "[ 31/8 → 4/1 | anchor:g5 note:91 ]",
+]
+`;
+
 exports[`runs examples > example "apply" example index 0 1`] = `
 [
   "[ 0/1 → 1/1 | note:C3 ]",
@@ -4190,6 +4227,27 @@ exports[`runs examples > example "extend" example index 0 1`] = `
   "[ 7/2 → 29/8 | s:bd ]",
   "[ 29/8 → 15/4 | s:bd ]",
   "[ 31/8 → 4/1 | s:cp ]",
+]
+`;
+
+exports[`runs examples > example "fadeTime" example index 0 1`] = `
+[
+  "[ 0/1 → 1/4 | s:oh end:0.1 fadeTime:0 ]",
+  "[ 1/4 → 1/2 | s:oh end:0.1 fadeTime:0 ]",
+  "[ 1/2 → 3/4 | s:oh end:0.1 fadeTime:0 ]",
+  "[ 3/4 → 1/1 | s:oh end:0.1 fadeTime:0 ]",
+  "[ 1/1 → 5/4 | s:oh end:0.1 fadeTime:0.2 ]",
+  "[ 5/4 → 3/2 | s:oh end:0.1 fadeTime:0.2 ]",
+  "[ 3/2 → 7/4 | s:oh end:0.1 fadeTime:0.2 ]",
+  "[ 7/4 → 2/1 | s:oh end:0.1 fadeTime:0.2 ]",
+  "[ 2/1 → 9/4 | s:oh end:0.1 fadeTime:0.4 ]",
+  "[ 9/4 → 5/2 | s:oh end:0.1 fadeTime:0.4 ]",
+  "[ 5/2 → 11/4 | s:oh end:0.1 fadeTime:0.4 ]",
+  "[ 11/4 → 3/1 | s:oh end:0.1 fadeTime:0.4 ]",
+  "[ 3/1 → 13/4 | s:oh end:0.1 fadeTime:0.8 ]",
+  "[ 13/4 → 7/2 | s:oh end:0.1 fadeTime:0.8 ]",
+  "[ 7/2 → 15/4 | s:oh end:0.1 fadeTime:0.8 ]",
+  "[ 15/4 → 4/1 | s:oh end:0.1 fadeTime:0.8 ]",
 ]
 `;
 
@@ -8096,6 +8154,48 @@ exports[`runs examples > example "panchor" example index 0 1`] = `
   "[ 5/2 → 3/1 | note:c4 penv:12 panchor:1 ]",
   "[ 3/1 → 7/2 | note:c penv:12 panchor:0.5 ]",
   "[ 7/2 → 4/1 | note:c4 penv:12 panchor:0.5 ]",
+]
+`;
+
+exports[`runs examples > example "panspan" example index 0 1`] = `
+[
+  "[ 0/1 → 1/4 | s:bd pan:0.5 panspan:0 ]",
+  "[ 1/4 → 1/2 | s:hh pan:0.5 panspan:0 ]",
+  "[ 1/2 → 3/4 | s:bd pan:0.5 panspan:0 ]",
+  "[ 3/4 → 1/1 | s:hh pan:0.5 panspan:0 ]",
+  "[ 1/1 → 5/4 | s:bd pan:1 panspan:0.5 ]",
+  "[ 5/4 → 3/2 | s:hh pan:1 panspan:0.5 ]",
+  "[ 3/2 → 7/4 | s:bd pan:1 panspan:0.5 ]",
+  "[ 7/4 → 2/1 | s:hh pan:1 panspan:0.5 ]",
+  "[ 2/1 → 9/4 | s:bd pan:0.5 panspan:1 ]",
+  "[ 9/4 → 5/2 | s:hh pan:0.5 panspan:1 ]",
+  "[ 5/2 → 11/4 | s:bd pan:0.5 panspan:1 ]",
+  "[ 11/4 → 3/1 | s:hh pan:0.5 panspan:1 ]",
+  "[ 3/1 → 13/4 | s:bd pan:0 panspan:0 ]",
+  "[ 13/4 → 7/2 | s:hh pan:0 panspan:0 ]",
+  "[ 7/2 → 15/4 | s:bd pan:0 panspan:0 ]",
+  "[ 15/4 → 4/1 | s:hh pan:0 panspan:0 ]",
+]
+`;
+
+exports[`runs examples > example "pansplay" example index 0 1`] = `
+[
+  "[ 0/1 → 1/4 | s:bd pan:0.5 pansplay:0 ]",
+  "[ 1/4 → 1/2 | s:hh pan:0.5 pansplay:0 ]",
+  "[ 1/2 → 3/4 | s:bd pan:0.5 pansplay:0 ]",
+  "[ 3/4 → 1/1 | s:hh pan:0.5 pansplay:0 ]",
+  "[ 1/1 → 5/4 | s:bd pan:1 pansplay:0.5 ]",
+  "[ 5/4 → 3/2 | s:hh pan:1 pansplay:0.5 ]",
+  "[ 3/2 → 7/4 | s:bd pan:1 pansplay:0.5 ]",
+  "[ 7/4 → 2/1 | s:hh pan:1 pansplay:0.5 ]",
+  "[ 2/1 → 9/4 | s:bd pan:0.5 pansplay:1 ]",
+  "[ 9/4 → 5/2 | s:hh pan:0.5 pansplay:1 ]",
+  "[ 5/2 → 11/4 | s:bd pan:0.5 pansplay:1 ]",
+  "[ 11/4 → 3/1 | s:hh pan:0.5 pansplay:1 ]",
+  "[ 3/1 → 13/4 | s:bd pan:0 pansplay:0 ]",
+  "[ 13/4 → 7/2 | s:hh pan:0 pansplay:0 ]",
+  "[ 7/2 → 15/4 | s:bd pan:0 pansplay:0 ]",
+  "[ 15/4 → 4/1 | s:hh pan:0 pansplay:0 ]",
 ]
 `;
 
