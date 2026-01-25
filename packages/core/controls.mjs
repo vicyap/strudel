@@ -534,6 +534,7 @@ export const { fmi, fmi1, fmi2, fmi3, fmi4, fmi5, fmi6, fmi7, fmi8, fm, fm1, fm2
  * @name fmenv
  * @tags fm, envelope, superdough, supradough
  * @param {number | Pattern} type lin | exp
+ * @synonyms fme
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -543,9 +544,10 @@ export const { fmi, fmi1, fmi2, fmi3, fmi4, fmi5, fmi6, fmi7, fmi8, fm, fm1, fm2
  * ._scope()
  *
  */
-export const { fmenv, fmenv1, fmenv2, fmenv3, fmenv4, fmenv5, fmenv6, fmenv7, fmenv8 } = registerMultiControl(
+export const { fmenv, fmenv1, fmenv2, fmenv3, fmenv4, fmenv5, fmenv6, fmenv7, fmenv8, fme } = registerMultiControl(
   'fmenv',
   8,
+  'fme',
 );
 
 /**
@@ -558,6 +560,7 @@ export const { fmenv, fmenv1, fmenv2, fmenv3, fmenv4, fmenv5, fmenv6, fmenv7, fm
  * @tags fm, envelope, superdough, supradough
  * @synonyms fmatt
  * @param {number | Pattern} time attack time
+ * @synonyms fmatt
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -616,6 +619,7 @@ export const { fmwave, fmwave1, fmwave2, fmwave3, fmwave4, fmwave5, fmwave6, fmw
  * @tags fm, envelope, superdough, supradough
  * @synonyms fmdec
  * @param {number | Pattern} time decay time
+ * @synonyms fmdec
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -655,6 +659,7 @@ export const {
  * @tags fm, envelope, superdough, supradough
  * @synonyms fmsus
  * @param {number | Pattern} level sustain level
+ * @synonyms fmsus
  * @example
  * note("c e g b g e")
  * .fm(4)
@@ -1093,7 +1098,7 @@ export const { duckonset } = registerControl('duckonset', 'duckons');
  *
  * @name duckattack
  * @tags amplitude, envelope, orbit, superdough
- * @synonyms duckatt
+ * @synonyms duckatt, datt
  *
  * @param {number | Pattern} time The attack time in seconds
  * @example
@@ -1105,13 +1110,13 @@ export const { duckonset } = registerControl('duckonset', 'duckons');
  * ducker: s("bd:4!4").beat("0,4,8,11,14",16).duckorbit("2:5").duckattack("0.4:0.1")
  *
  */
-export const { duckattack } = registerControl('duckattack', 'duckatt');
+export const { duckattack } = registerControl('duckattack', 'duckatt', 'datt');
 
 /**
  * Create byte beats with custom expressions
  *
  * @name byteBeatExpression
- * @synonyms bbexpr
+ * @synonyms bbexpr, bb
  * @tags superdough
  *
  * @param {number | Pattern} byteBeatExpression bitwise expression for creating bytebeat
@@ -1119,7 +1124,7 @@ export const { duckattack } = registerControl('duckattack', 'duckatt');
  * s("bytebeat").bbexpr('t*(t>>15^t>>66)')
  *
  */
-export const { byteBeatExpression, bbexpr } = registerControl('byteBeatExpression', 'bbexpr');
+export const { byteBeatExpression, bbexpr } = registerControl('byteBeatExpression', 'bbexpr', 'bb');
 
 /**
  * Create byte beats with custom expressions
@@ -1166,6 +1171,7 @@ export const { pw } = registerControl(['pw', 'pwrate', 'pwsweep']);
  * Controls the lfo rate for the pulsewidth of the pulse oscillator
  *
  * @name pwrate
+ * @synonyms pwr
  * @tags superdough, lfo
  * @param {number | Pattern} rate
  * @example
@@ -1173,19 +1179,20 @@ export const { pw } = registerControl(['pw', 'pwrate', 'pwsweep']);
 
  *
  */
-export const { pwrate } = registerControl('pwrate');
+export const { pwrate } = registerControl('pwrate', 'pwr');
 
 /**
  * Controls the lfo sweep for the pulsewidth of the pulse oscillator
  *
  * @name pwsweep
+ * @synonyms pws
  * @tags superdough, lfo
  * @param {number | Pattern} sweep
  * @example
  * n(run(8)).scale("D:pentatonic").s("pulse").pw("0.5").pwrate("<5 .1 25>").pwsweep("<0.3 .8>")
  *
  */
-export const { pwsweep } = registerControl('pwsweep');
+export const { pwsweep } = registerControl('pwsweep', 'pws');
 
 /**
  * Phaser audio effect that approximates popular guitar pedals.
@@ -1906,12 +1913,12 @@ export const { delaytime, delayt, dt } = registerControl('delaytime', 'delayt', 
  * @name delaysync
  * @tags orbit, superdough
  * @param {number | Pattern} cycles delay length in cycles
- * @synonyms delayt, dt
+ * @synonyms delays, ds
  * @example
  * s("bd bd").delay(.25).delaysync("<1 2 3 5>".div(8))
  *
  */
-export const { delaysync } = registerControl('delaysync');
+export const { delaysync } = registerControl('delaysync', 'delays', 'ds');
 
 /**
  * Specifies whether delaytime is calculated relative to cps.
