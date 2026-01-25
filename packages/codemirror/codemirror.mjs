@@ -24,10 +24,11 @@ import { sliderPlugin, updateSliderWidgets } from './slider.mjs';
 import { activateTheme, initTheme, theme } from './themes.mjs';
 import { isTooltipEnabled } from './tooltip.mjs';
 import { updateWidgets, widgetPlugin } from './widget.mjs';
+import { jumpToCharacter } from './labelJump.mjs';
 
 export { toggleBlockComment, toggleBlockCommentByLine, toggleComment, toggleLineComment } from '@codemirror/commands';
 
-const extensions = {
+export const extensions = {
   isLineWrappingEnabled: (on) => (on ? EditorView.lineWrapping : []),
   isBracketMatchingEnabled: (on) => (on ? bracketMatching({ brackets: '()[]{}<>' }) : []),
   isBracketClosingEnabled: (on) => (on ? closeBrackets() : []),
@@ -48,7 +49,7 @@ const extensions = {
         ]
       : [],
 };
-const compartments = Object.fromEntries(Object.keys(extensions).map((key) => [key, new Compartment()]));
+export const compartments = Object.fromEntries(Object.keys(extensions).map((key) => [key, new Compartment()]));
 
 export const defaultSettings = {
   keybindings: 'codemirror',
@@ -118,6 +119,14 @@ export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, roo
             key: 'Alt-.',
             preventDefault: true,
             run: () => onStop?.(),
+          },
+          {
+            key: 'Alt-w',
+            run: (view) => jumpToCharacter(view, '$', 1),
+          },
+          {
+            key: 'Alt-q',
+            run: (view) => jumpToCharacter(view, '$', -1),
           },
           /* {
             key: 'Ctrl-Shift-.',
@@ -293,9 +302,9 @@ export class StrudelMirror {
       console.warn('first frame could not be painted');
     }
   }
-  async evaluate() {
+  async evaluate(autostart = true) {
     this.flash();
-    await this.repl.evaluate(this.code);
+    await this.repl.evaluate(this.code, autostart);
   }
   async stop() {
     this.repl.scheduler.stop();
@@ -411,7 +420,7 @@ export class StrudelMirror {
   }
 }
 
-function parseBooleans(value) {
+export function parseBooleans(value) {
   return { true: true, false: false }[value] ?? value;
 }
 
@@ -425,6 +434,7 @@ function s4() {
 /**
  * Overrides the css of highlighted events. Make sure to use single quotes!
  * @name markcss
+ * @tag visualization
  * @example
  * note("c a f e")
  * .markcss('text-decoration:underline')

@@ -2,9 +2,16 @@ import { NeoCyclist } from './neocyclist.mjs';
 import { Cyclist } from './cyclist.mjs';
 import { evaluate as _evaluate } from './evaluate.mjs';
 import { errorLogger, logger } from './logger.mjs';
-import { setTime } from './time.mjs';
+import {
+  setCpsFunc,
+  setIsStarted,
+  setPattern as exposeSchedulerPattern,
+  setTime,
+  setTriggerFunc,
+} from './schedulerState.mjs';
 import { evalScope } from './evaluate.mjs';
 import { register, Pattern, isPattern, silence, stack } from './pattern.mjs';
+import { reset_state } from './impure.mjs';
 
 export function repl({
   defaultOutput,
@@ -51,7 +58,11 @@ export function repl({
     getTime,
     onToggle: (started) => {
       updateState({ started });
+      setIsStarted(started);
       onToggle?.(started);
+      if (!started) {
+        reset_state();
+      }
     },
     setInterval,
     clearInterval,
@@ -61,6 +72,8 @@ export function repl({
   // NeoCyclist uses a shared worker to communicate between instances, which is not supported on mobile chrome
   const scheduler =
     sync && typeof SharedWorker != 'undefined' ? new NeoCyclist(schedulerOptions) : new Cyclist(schedulerOptions);
+  setTriggerFunc(schedulerOptions.onTrigger);
+  setCpsFunc(() => scheduler.cps);
   let pPatterns = {};
   let anonymousIndex = 0;
   let allTransform;
@@ -85,6 +98,7 @@ export function repl({
   const setPattern = async (pattern, autostart = true) => {
     pattern = editPattern?.(pattern) || pattern;
     await scheduler.setPattern(pattern, autostart);
+    exposeSchedulerPattern(pattern);
     return pattern;
   };
   setTime(() => scheduler.now()); // TODO: refactor?
@@ -102,6 +116,7 @@ export function repl({
    * Changes the global tempo to the given cycles per minute
    *
    * @name setcpm
+   * @tags temporal
    * @alias setCpm
    * @param {number} cpm cycles per minute
    * @example
@@ -115,7 +130,9 @@ export function repl({
 
   // TODO - not documented as jsdoc examples as the test framework doesn't simulate enough context for `each` and `all`..
 
-  /** Applies a function to all the running patterns. Note that the patterns are groups together into a single `stack` before the function is applied. This is probably what you want, but see `each` for
+  let allTransforms = [];
+  /**
+   * Applies a function to all the running patterns. Note that the patterns are groups together into a single `stack` before the function is applied. This is probably what you want, but see `each` for
    * a version that applies the function to each pattern separately.
    * ```
    * $: sound("bd - cp sd")
@@ -127,18 +144,21 @@ export function repl({
    * $: sound("hh*8")
    * all(x => x.pianoroll())
    * ```
+   *
+   * @tags combiners
    */
-  let allTransforms = [];
   const all = function (transform) {
     allTransforms.push(transform);
     return silence;
   };
   /** Applies a function to each of the running patterns separately. This is intended for future use with upcoming 'stepwise' features. See `all` for a version that applies the function to all the patterns stacked together into a single pattern.
+   *
    * ```
    * $: sound("bd - cp sd")
    * $: sound("hh*8")
    * each(fast("<2 3>"))
    * ```
+   * @tags combiners
    */
   const each = function (transform) {
     eachTransform = transform;

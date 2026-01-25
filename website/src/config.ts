@@ -76,6 +76,7 @@ export const SIDEBAR: Sidebar = {
       { text: 'MIDI & OSC', link: 'learn/input-output' },
     ],
     More: [
+      { text: 'FAQ', link: 'learn/faq' },
       { text: 'Recipes', link: 'recipes/recipes' },
       { text: 'Mini-Notation', link: 'learn/mini-notation' },
       { text: 'Visual Feedback', link: 'learn/visual-feedback' },

@@ -1,6 +1,6 @@
 {
   "name": "@strudel/codemirror",
-  "version": "1.2.6",
+  "version": "1.3.0",
   "description": "Codemirror Extensions for Strudel",
   "main": "index.mjs",
   "publishConfig": {

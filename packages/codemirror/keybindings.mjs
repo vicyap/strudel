@@ -1,5 +1,5 @@
 import { defaultKeymap } from '@codemirror/commands';
-import { Prec } from '@codemirror/state';
+import { Prec, EditorState } from '@codemirror/state';
 import { keymap, ViewPlugin } from '@codemirror/view';
 // import { searchKeymap } from '@codemirror/search';
 import { emacs } from '@replit/codemirror-emacs';
@@ -131,7 +131,13 @@ const keymaps = {
   vscode: vscodeExtension,
 };
 
+export { Vim } from '@replit/codemirror-vim';
+
 export function keybindings(name) {
   const active = keymaps[name];
-  return [active ? Prec.high(active()) : []];
+  const extensions = active ? [Prec.high(active())] : [];
+  if (name === 'vim') {
+    extensions.push(EditorState.allowMultipleSelections.of(true));
+  }
+  return extensions;
 }

@@ -16,5 +16,6 @@ export default defineConfig({
       '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress}.config.*',
       '**/shared.test.mjs',
     ],
+    setupFiles: './vitest.setup.mjs',
   },
 });
