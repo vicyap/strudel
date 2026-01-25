@@ -98,6 +98,7 @@ export const connectLFO = (id, params, nodeTracker) => {
     fxi = 'main',
     depth = 1,
     depthabs,
+    retrig = 0,
     ...filteredParams
   } = params;
   const { targetParams, paramName } = getTargetParamsForControl(control, nodeTracker[fxi], subControl);
@@ -109,7 +110,7 @@ export const connectLFO = (id, params, nodeTracker) => {
   const modParams = {
     ...filteredParams,
     frequency: sync !== undefined ? sync * cps : rate,
-    time: cycle / cps,
+    time: retrig > 0.5 ? 0 : cycle / cps,
     depth: depthValue,
     min,
     max,

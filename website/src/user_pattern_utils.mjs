@@ -1,4 +1,4 @@
-import { atom } from 'nanostores';
+import { atom, computed } from 'nanostores';
 import { useStore } from '@nanostores/react';
 import { logger } from '@strudel/core';
 import { nanoid } from 'nanoid';
@@ -36,12 +36,9 @@ export let $viewingPatternData = sessionAtom('viewingPatternData', {
   created_at: Date.now(),
 });
 
-export const getViewingPatternData = () => {
-  return parseJSON($viewingPatternData.get());
-};
-export const useViewingPatternData = () => {
-  return useStore($viewingPatternData);
-};
+const $viewingPatterns = computed($viewingPatternData, (state) => parseJSON(state));
+export const useViewingPatternData = () => useStore($viewingPatterns);
+export const getViewingPatternData = () => $viewingPatterns.get();
 
 export const setViewingPatternData = (data) => {
   $viewingPatternData.set(JSON.stringify(data));

@@ -234,9 +234,6 @@ importers:
 
   packages/core:
     dependencies:
-      '@kabelsalat/web':
-        specifier: ^0.4.1
-        version: 0.4.1
       fraction.js:
         specifier: ^5.2.1
         version: 5.2.1
@@ -522,6 +519,9 @@ importers:
   packages/superdough:
     dependencies:
       '@kabelsalat/lib':
+        specifier: ^0.4.1
+        version: 0.4.1
+      '@kabelsalat/web':
         specifier: ^0.4.1
         version: 0.4.1
       nanostores:

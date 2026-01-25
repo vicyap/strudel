@@ -818,7 +818,6 @@ export class Pattern {
    * @name layer
    * @tags combiners
    * @memberof Pattern
-   * @synonyms apply
    * @returns Pattern
    * @example
    * "<0 2 4 6 ~ 4 ~ 2 0!3 ~!5>*8"
@@ -1055,91 +1054,88 @@ function _composeOp(a, b, func) {
   return func(a, b);
 }
 
-// Make composers
-(function () {
-  // pattern composers
-  const composers = {
-    set: [(a, b) => b],
-    keep: [(a) => a],
-    keepif: [(a, b) => (b ? a : undefined)],
+// pattern composers
+const COMPOSERS = {
+  set: [(a, b) => b],
+  keep: [(a) => a],
+  keepif: [(a, b) => (b ? a : undefined)],
 
-    // numerical functions
-    /**
-     *
-     * Assumes a pattern of numbers. Adds the given number to each item in the pattern.
-     * @name add
-     * @memberof Pattern
-     * @tags math
-     * @example
-     * // Here, the triad 0, 2, 4 is shifted by different amounts
-     * n("0 2 4".add("<0 3 4 0>")).scale("C:major")
-     * // Without add, the equivalent would be:
-     * // n("<[0 2 4] [3 5 7] [4 6 8] [0 2 4]>").scale("C:major")
-     * @example
-     * // You can also use add with notes:
-     * note("c3 e3 g3".add("<0 5 7 0>"))
-     * // Behind the scenes, the notes are converted to midi numbers:
-     * // note("48 52 55".add("<0 5 7 0>"))
-     */
-    add: [numeralArgs((a, b) => a + b)], // support string concatenation
-    /**
-     *
-     * Like add, but the given numbers are subtracted.
-     * @name sub
-     * @memberof Pattern
-     * @tags math
-     * @example
-     * n("0 2 4".sub("<0 1 2 3>")).scale("C4:minor")
-     * // See add for more information.
-     */
-    sub: [numeralArgs((a, b) => a - b)],
-    /**
-     *
-     * Multiplies each number by the given factor.
-     * @name mul
-     * @memberof Pattern
-     * @tags math
-     * @example
-     * "<1 1.5 [1.66, <2 2.33>]>*4".mul(150).freq()
-     */
-    mul: [numeralArgs((a, b) => a * b)],
-    /**
-     *
-     * Divides each number by the given factor.
-     * @name div
-     * @memberof Pattern
-     * @tags math
-     */
-    div: [numeralArgs((a, b) => a / b)],
-    mod: [numeralArgs(_mod)],
-    pow: [numeralArgs(Math.pow)],
-    log2: [numeralArgs(Math.log2)],
-    band: [numeralArgs((a, b) => a & b)],
-    bor: [numeralArgs((a, b) => a | b)],
-    bxor: [numeralArgs((a, b) => a ^ b)],
-    blshift: [numeralArgs((a, b) => a << b)],
-    brshift: [numeralArgs((a, b) => a >> b)],
+  // numerical functions
+  /**
+   *
+   * Assumes a pattern of numbers. Adds the given number to each item in the pattern.
+   * @name add
+   * @memberof Pattern
+   * @tags math
+   * @example
+   * // Here, the triad 0, 2, 4 is shifted by different amounts
+   * n("0 2 4".add("<0 3 4 0>")).scale("C:major")
+   * // Without add, the equivalent would be:
+   * // n("<[0 2 4] [3 5 7] [4 6 8] [0 2 4]>").scale("C:major")
+   * @example
+   * // You can also use add with notes:
+   * note("c3 e3 g3".add("<0 5 7 0>"))
+   * // Behind the scenes, the notes are converted to midi numbers:
+   * // note("48 52 55".add("<0 5 7 0>"))
+   */
+  add: [numeralArgs((a, b) => a + b)], // support string concatenation
+  /**
+   *
+   * Like add, but the given numbers are subtracted.
+   * @name sub
+   * @memberof Pattern
+   * @tags math
+   * @example
+   * n("0 2 4".sub("<0 1 2 3>")).scale("C4:minor")
+   * // See add for more information.
+   */
+  sub: [numeralArgs((a, b) => a - b)],
+  /**
+   *
+   * Multiplies each number by the given factor.
+   * @name mul
+   * @memberof Pattern
+   * @tags math
+   * @example
+   * "<1 1.5 [1.66, <2 2.33>]>*4".mul(150).freq()
+   */
+  mul: [numeralArgs((a, b) => a * b)],
+  /**
+   *
+   * Divides each number by the given factor.
+   * @name div
+   * @memberof Pattern
+   * @tags math
+   */
+  div: [numeralArgs((a, b) => a / b)],
+  mod: [numeralArgs(_mod)],
+  pow: [numeralArgs(Math.pow)],
+  log2: [numeralArgs(Math.log2)],
+  band: [numeralArgs((a, b) => a & b)],
+  bor: [numeralArgs((a, b) => a | b)],
+  bxor: [numeralArgs((a, b) => a ^ b)],
+  blshift: [numeralArgs((a, b) => a << b)],
+  brshift: [numeralArgs((a, b) => a >> b)],
 
-    // TODO - force numerical comparison if both look like numbers?
-    lt: [(a, b) => a < b],
-    gt: [(a, b) => a > b],
-    lte: [(a, b) => a <= b],
-    gte: [(a, b) => a >= b],
-    eq: [(a, b) => a == b],
-    eqt: [(a, b) => a === b],
-    ne: [(a, b) => a != b],
-    net: [(a, b) => a !== b],
-    and: [(a, b) => a && b],
-    or: [(a, b) => a || b],
+  // TODO - force numerical comparison if both look like numbers?
+  lt: [(a, b) => a < b],
+  gt: [(a, b) => a > b],
+  lte: [(a, b) => a <= b],
+  gte: [(a, b) => a >= b],
+  eq: [(a, b) => a == b],
+  eqt: [(a, b) => a === b],
+  ne: [(a, b) => a != b],
+  net: [(a, b) => a !== b],
+  and: [(a, b) => a && b],
+  or: [(a, b) => a || b],
 
-    //  bitwise ops
-    func: [(a, b) => b(a)],
-  };
+  //  bitwise ops
+  func: [(a, b) => b(a)],
+};
 
-  const hows = ['In', 'Out', 'Mix', 'Squeeze', 'SqueezeOut', 'Reset', 'Restart', 'Poly'];
-
+const _setupAlignments = () => {
   // generate methods to do what and how
-  for (const [what, [op, preprocess]] of Object.entries(composers)) {
+  for (const [what, [op, preprocess]] of Object.entries(COMPOSERS)) {
     // make plain version, e.g. pat._add(value) adds that plain value
     // to all the values in pat
     Pattern.prototype['_' + what] = function (value) {
@@ -1148,16 +1144,18 @@ function _composeOp(a, b, func) {
 
     // make patternified monster version
     Object.defineProperty(Pattern.prototype, what, {
+      // Set to configurable so we can update if the default alignment changes
+      configurable: true,
       // a getter that returns a function, so 'pat' can be
       // accessed by closures that are methods of that function..
       get: function () {
         const pat = this;
 
         // wrap the 'in' function as default behaviour
-        const wrapper = (...other) => pat[what]['in'](...other);
+        const wrapper = (...other) => pat[what][DEFAULT_ALIGNMENT](...other);
 
         // add methods to that function for each behaviour
-        for (const how of hows) {
+        for (const how of ALIGNMENTS) {
           wrapper[how.toLowerCase()] = function (...other) {
             var howpat = pat;
             other = sequence(other);
@@ -1182,15 +1180,23 @@ function _composeOp(a, b, func) {
         return wrapper;
       },
     });
-
-    // Default op to 'set', e.g. pat.squeeze(pat2) = pat.set.squeeze(pat2)
-    for (const how of hows) {
-      Pattern.prototype[how.toLowerCase()] = function (...args) {
-        return this.set[how.toLowerCase()](args);
-      };
-    }
   }
+};
 
+let DEFAULT_ALIGNMENT = 'in';
+const ALIGNMENTS = ['In', 'Out', 'Mix', 'Squeeze', 'SqueezeOut', 'Reset', 'Restart', 'Poly'];
+const ALIGNMENT_KEYS = ALIGNMENTS.map((how) => how.toLowerCase());
+
+// Make composers
+(function () {
+  _setupAlignments();
+
+  // Default op to 'set', e.g. pat.squeeze(pat2) = pat.set.squeeze(pat2)
+  for (const how of ALIGNMENTS) {
+    Pattern.prototype[how.toLowerCase()] = function (...args) {
+      return this.set[how.toLowerCase()](args);
+    };
+  }
   // binary composers
   /**
    * Applies the given structure to the pattern:
@@ -1248,6 +1254,28 @@ function _composeOp(a, b, func) {
     return this.keep.restart(...args);
   };
 })();
+
+/**
+ * Sets the default method of combining events from two patterns (aka [alignment](https://strudel.cc/technical-manual/alignment/)) in Strudel.
+ * The default method is 'in', meaning that patterns to the left will (typically) dictate the event timings when combined with patterns to the right.
+ * By changing alignment to 'out', the opposite will happen. With 'mix', they will combine their event timings.
+ *
+ * Note that we say the _default_ method, because alignments can also be set explicitly with calls like
+ * 'add.mix', 'set.squeeze', etc.
+ *
+ * @param {string} method Default join method to use. Options: 'in', 'out', 'mix', 'squeeze', 'squeezeout', 'reset', 'restart', 'poly'
+ * @tags combiners
+ * @example
+ * setDefaultJoin('mix') // also try 'in', 'out', 'squeeze', etc.
+ * s("saw").vel("1 0.5").note("F A C E").delay("0 0.2 0.3")
+ */
+export const setDefaultJoin = (alignment) => {
+  alignment = alignment?.toLowerCase();
+  if (DEFAULT_ALIGNMENT !== alignment && ALIGNMENT_KEYS.includes(alignment)) {
+    DEFAULT_ALIGNMENT = alignment;
+    _setupAlignments();
+  }
+};
 
 // aliases
 export const polyrhythm = stack;
@@ -1536,10 +1564,10 @@ export function arrange(...sections) {
  * @tags combiners
  * @return {Pattern}
  * @example
-seqPLoop([0, 2, "bd(3,8)"],
-         [1, 3, "cp(3,8)"]
-        )
-  .sound()
+seqPLoop(
+  [0, 2, "bd(3,8)"],
+  [1, 3, "cp(3,8)"]
+).sound()
  */
 export function seqPLoop(...parts) {
   let total = Fraction(0);
@@ -1582,7 +1610,7 @@ export function sequence(...pats) {
 
 /** Like **cat**, but the items are crammed into one cycle.
  * @tags combiners
- * @synonyms seq, fastcat
+ * @synonyms fastcat
  * @example
  * seq("e5", "b4", ["d5", "c5"]).note()
  * // "e5 b4 [d5 c5]".note()
@@ -2109,13 +2137,12 @@ export const { firstOf, every } = register(['firstOf', 'every'], function (n, fu
 });
 
 /**
- * Like layer, but with a single function:
- * @tags temporal
+ * Applies the given function to the pattern. Like layer, but with a single function:
+ * @tags combiners
  * @name apply
  * @example
  * "<c3 eb3 g3>".scale('C minor').apply(scaleTranspose("0,2,4")).note()
  */
-// TODO: remove or dedupe with layer?
 export const apply = register('apply', function (func, pat) {
   return func(pat);
 });
@@ -2472,7 +2499,7 @@ export const { juxBy, juxby } = register(['juxBy', 'juxby'], function (by, func,
 
 /**
  * The jux function creates strange stereo effects, by applying a function to a pattern, but only in the right-hand channel.
- * @tags temporal
+ * @tags temporal, superdough
  * @example
  * s("bd lt [~ ht] mt cp ~ bd hh").jux(rev)
  * @example
@@ -2486,7 +2513,7 @@ export const jux = register('jux', function (func, pat) {
 
 /**
  * Superimpose and offset multiple times, applying the given function each time.
- * @tags temporal
+ * @tags temporal, functional
  * @name echoWith
  * @synonyms echowith, stutWith, stutwith
  * @param {number} times how many times to repeat
@@ -2660,7 +2687,7 @@ export const { repeatCycles } = register(
 
 /**
  * Divides a pattern into a given number of parts, then cycles through those parts in turn, applying the given function to each part in turn (one part per cycle).
- * @tags temporal
+ * @tags temporal, functional
  * @name chunk
  * @synonyms slowChunk, slowchunk
  * @memberof Pattern
@@ -2824,7 +2851,7 @@ Pattern.prototype.tag = function (tag) {
 /**
  * Filters haps using the given function
  * @name filter
- * @tags temporal
+ * @tags temporal, functional
  * @param {Function} test function to test Hap
  * @example
  * s("hh!7 oh").filter(hap => hap.value.s === 'hh')
@@ -2834,7 +2861,7 @@ export const filter = register('filter', (test, pat) => pat.withHaps((haps) => h
 /**
  * Filters haps by their begin time
  * @name filterWhen
- * @tags temporal
+ * @tags temporal, functional
  * @param {Function} test function to test Hap.whole.begin
  * @example
  * oneCycle: s("bd*4").filterWhen((t) => t < 1)
@@ -2844,7 +2871,7 @@ export const filterWhen = register('filterWhen', (test, pat) => pat.filter((h) =
 /**
  * Use within to apply a function to only a part of a pattern.
  * @name within
- * @tags temporal
+ * @tags temporal, functional
  * @param {number} start start within cycle (0 - 1)
  * @param {number} end end within cycle (0 - 1). Must be > start
  * @param {Function} func function to be applied to the sub-pattern
@@ -2919,7 +2946,7 @@ export function _match(span, hap_p) {
  * *Experimental*
  *
  * Speeds a pattern up or down, to fit to the given number of steps per cycle.
- * @tags temporal
+ * @tags stepwise
  * @example
  * sound("bd sd cp").pace(4)
  * // The same as sound("{bd sd cp}%4") or sound("<bd sd cp>*4")
@@ -2961,7 +2988,7 @@ export function _polymeterListSteps(steps, ...args) {
  * *Experimental*
  *
  * Aligns the steps of the patterns, creating polymeters. The patterns are repeated until they all fit the cycle. For example, in the below the first pattern is repeated twice, and the second is repeated three times, to fit the lowest common multiple of six steps.
- * @tags temporal
+ * @tags stepwise
  * @synonyms pm
  * @example
  * // The same as note("{c eb g, c2 g2}%6")
@@ -2994,7 +3021,7 @@ export function polymeter(...args) {
  * The steps can either be inferred from the pattern, or provided as a [length, pattern] pair.
  * Has the alias `timecat`.
  * @name stepcat
- * @tags combiners
+ * @tags stepwise
  * @synonyms timeCat, timecat
  * @return {Pattern}
  * @example
@@ -3052,7 +3079,7 @@ export function stepcat(...timepats) {
  * Concatenates patterns stepwise, according to an inferred 'steps per cycle'.
  * Similar to `stepcat`, but if an argument is a list, the whole pattern will alternate between the elements in the list.
  *
- * @tags combiners
+ * @tags stepwise
  * @return {Pattern}
  * @example
  * stepalt(["bd cp", "mt"], "bd").sound()
@@ -3079,7 +3106,7 @@ export function stepalt(...groups) {
  *
  * Takes the given number of steps from a pattern (dropping the rest).
  * A positive number will take steps from the start of a pattern, and a negative number from the end.
- * @tags temporal
+ * @tags stepwise
  * @return {Pattern}
  * @example
  * "bd cp ht mt".take("2").sound()
@@ -3124,7 +3151,7 @@ export const take = stepRegister('take', function (i, pat) {
  *
  * Drops the given number of steps from a pattern.
  * A positive number will drop steps from the start of a pattern, and a negative number from the end.
- * @tags temporal
+ * @tags stepwise
  * @return {Pattern}
  * @example
  * "tha dhi thom nam".drop("1").sound().bank("mridangam")
@@ -3153,7 +3180,7 @@ export const drop = stepRegister('drop', function (i, pat) {
  * `extend` is similar to `fast` in that it increases its density, but it also increases the step count
  * accordingly. So `stepcat("a b".extend(2), "c d")` would be the same as `"a b a b c d"`, whereas
  * `stepcat("a b".fast(2), "c d")` would be the same as `"[a b] [a b] c d"`.
- * @tags temporal
+ * @tags stepwise
  * @example
  * stepcat(
  *   sound("bd bd - cp").extend(2),
@@ -3172,7 +3199,7 @@ export const extend = stepRegister('extend', function (factor, pat) {
  * `stepcat("a b".fast(2), "c d")` would be the same as `"[a b] [a b] c d"`.
  *
  * TODO: find out how this function differs from extend
- * @tags temporal
+ * @tags stepwise
  * @example
  * stepcat(
  *   sound("bd bd - cp").replicate(2),
@@ -3187,7 +3214,7 @@ export const replicate = stepRegister('replicate', function (factor, pat) {
  * *Experimental*
  *
  * Expands the step size of the pattern by the given factor.
- * @tags temporal
+ * @tags stepwise
  * @example
  * sound("tha dhi thom nam").bank("mridangam").expand("3 2 1 1 2 3").pace(8)
  */
@@ -3199,7 +3226,7 @@ export const expand = stepRegister('expand', function (factor, pat) {
  * *Experimental*
  *
  * Contracts the step size of the pattern by the given factor. See also `expand`.
- * @tags temporal
+ * @tags stepwise
  * @example
  * sound("tha dhi thom nam").bank("mridangam").contract("3 2 1 1 2 3").pace(8)
  */
@@ -3254,7 +3281,7 @@ export const shrinklist = (amount, pat) => pat.shrinklist(amount);
  * Progressively shrinks the pattern by 'n' steps until there's nothing left, or if a second value is given (using mininotation list syntax with `:`),
  * that number of times.
  * A positive number will progressively drop steps from the start of a pattern, and a negative number from the end.
- * @tags temporal
+ * @tags stepwise
  * @return {Pattern}
  * @example
  * "tha dhi thom nam".shrink("1").sound()
@@ -3294,7 +3321,7 @@ export const shrink = register(
  * Progressively grows the pattern by 'n' steps until the full pattern is played, or if a second value is given (using mininotation list syntax with `:`),
  * that number of times.
  * A positive number will progressively grow steps from the start of a pattern, and a negative number from the end.
- * @tags temporal
+ * @tags stepwise
  * @return {Pattern}
  * @example
  * "tha dhi thom nam".grow("1").sound()
@@ -3335,7 +3362,7 @@ export const grow = register(
  * on successive repetitions. The patterns are added together stepwise, with all repetitions taking place over a single cycle. Using `pace` to set the 
  * number of steps per cycle is therefore usually recommended.
  *
- * @tags combiners
+ * @tags stepwise
  * @return {Pattern}
  * @example
  * "[c g]".tour("e f", "e f g", "g f e c").note()
@@ -3362,7 +3389,7 @@ Pattern.prototype.tour = function (...many) {
  * 'zips' together the steps of the provided patterns. This can create a long repetition, taking place over a single, dense cycle. 
  * Using `pace` to set the number of steps per cycle is therefore usually recommended.
  * 
- * @tags combiners
+ * @tags stepwise
  * @returns {Pattern}
  * @example
  * zip("e f", "e f g", "g [f e] a f4 c").note()
@@ -3414,7 +3441,7 @@ Pattern.prototype.steps = Pattern.prototype.pace;
  * Cuts each sample into the given number of parts, allowing you to explore a technique known as 'granular synthesis'.
  * It turns a pattern of samples into a pattern of parts of samples.
  * @name chop
- * @tags temporal
+ * @tags samples
  * @memberof Pattern
  * @returns Pattern
  * @example
@@ -3445,7 +3472,7 @@ export const chop = register('chop', function (n, pat) {
 /**
  * Cuts each sample into the given number of parts, triggering progressive portions of each sample at each loop.
  * @name striate
- * @tags temporal
+ * @tags samples
  * @memberof Pattern
  * @returns Pattern
  * @example
@@ -3464,14 +3491,13 @@ export const striate = register('striate', function (n, pat) {
 /**
  * Makes the sample fit the given number of cycles by changing the speed.
  * @name loopAt
- * @tags temporal
+ * @tags samples, pitch
  * @memberof Pattern
  * @returns Pattern
  * @example
  * samples({ rhodes: 'https://cdn.freesound.org/previews/132/132051_316502-lq.mp3' })
  * s("rhodes").loopAt(2)
  */
-// TODO - global cps clock
 const _loopAt = function (factor, pat, cps = 0.5) {
   return pat
     .speed((1 / factor) * cps)
@@ -3479,11 +3505,16 @@ const _loopAt = function (factor, pat, cps = 0.5) {
     .slow(factor);
 };
 
+export const { loopAt, loopat } = register(['loopAt', 'loopat'], function (factor, pat) {
+  const steps = pat._steps ? pat._steps.div(factor) : undefined;
+  return new Pattern((state) => _loopAt(factor, pat, state.controls._cps).query(state), steps);
+});
+
 /**
  * Chops samples into the given number of slices, triggering those slices with a given pattern of slice numbers.
  * Instead of a number, it also accepts a list of numbers from 0 to 1 to slice at specific points.
  * @name slice
- * @tags temporal
+ * @tags samples
  * @memberof Pattern
  * @returns Pattern
  * @example
@@ -3537,7 +3568,7 @@ Pattern.prototype.onTriggerTime = function (func) {
 /**
  * Works the same as slice, but changes the playback speed of each slice to match the duration of its step.
  * @name splice
- * @tags temporal
+ * @tags samples, pitch
  * @example
  * samples('github:tidalcycles/dirt-samples')
  * s("breaks165")
@@ -3566,16 +3597,11 @@ export const splice = register(
   false, // turns off auto-patternification
 );
 
-export const { loopAt, loopat } = register(['loopAt', 'loopat'], function (factor, pat) {
-  const steps = pat._steps ? pat._steps.div(factor) : undefined;
-  return new Pattern((state) => _loopAt(factor, pat, state.controls._cps).query(state), steps);
-});
-
 /**
  * Makes the sample fit its event duration. Good for rhythmical loops like drum breaks.
  * Similar to `loopAt`.
  * @name fit
- * @tags temporal
+ * @tags samples, pitch
  * @example
  * samples({ rhodes: 'https://cdn.freesound.org/previews/132/132051_316502-lq.mp3' })
  * s("rhodes/2").fit()
@@ -3597,18 +3623,16 @@ export const fit = register('fit', (pat) =>
 
 /**
  * Makes the sample fit the given number of cycles and cps value, by
- * changing the speed. Please note that at some point cps will be
- * given by a global clock and this function will be
- * deprecated/removed.
+ * changing the speed. deprecated: use loopAt or fit instead, together with setCps / setCpm.
  * @name loopAtCps
- * @tags temporal
+ * @tags samples, pitch
  * @memberof Pattern
+ * @deprecated
  * @returns Pattern
  * @example
  * samples({ rhodes: 'https://cdn.freesound.org/previews/132/132051_316502-lq.mp3' })
  * s("rhodes").loopAtCps(4,1.5).cps(1.5)
  */
-// TODO - global cps clock
 export const { loopAtCps, loopatcps } = register(['loopAtCps', 'loopatcps'], function (factor, cps, pat) {
   return _loopAt(factor, pat, cps);
 });
@@ -3630,7 +3654,7 @@ let fadeGain = (p) => (p < 0.5 ? 1 : 1 - (p - 0.5) / 0.5);
  * - 1 = (no left, full right)
  *
  * @name xfade
- * @tags combiners
+ * @tags amplitude
  * @example
  * xfade(s("bd*2"), "<0 .25 .5 .75 1>", s("hh*8"))
  */
@@ -3756,7 +3780,7 @@ const _distortWithAlg = function (name) {
  * Soft-clipping distortion
  *
  * @name soft
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3767,7 +3791,7 @@ export const soft = _distortWithAlg('soft');
  * Hard-clipping distortion
  *
  * @name hard
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3778,7 +3802,7 @@ export const hard = _distortWithAlg('hard');
  * Cubic polynomial distortion
  *
  * @name cubic
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3789,7 +3813,7 @@ export const cubic = _distortWithAlg('cubic');
  * Diode-emulating distortion
  *
  * @name diode
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3800,7 +3824,7 @@ export const diode = _distortWithAlg('diode');
  * Asymmetrical diode distortion
  *
  * @name asym
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3811,7 +3835,7 @@ export const asym = _distortWithAlg('asym');
  * Wavefolding distortion
  *
  * @name fold
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3822,7 +3846,7 @@ export const fold = _distortWithAlg('fold');
  * Wavefolding distortion composed with sinusoid
  *
  * @name sinefold
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3833,7 +3857,7 @@ export const sinefold = _distortWithAlg('sinefold');
  * Distortion via Chebyshev polynomials
  *
  * @name chebyshev
- * @tags fx
+ * @tags distortion, superdough
  * @param {number | Pattern} distortion amount of distortion to apply
  * @param {number | Pattern} volume linear postgain of the distortion
  *
@@ -3867,7 +3891,7 @@ const _ensureListPattern = (list) => {
  * Can also be used to create a new synth via `s('user').partials(...)`
  *
  * @name partials
- * @tags fx, superdough
+ * @tags superdough
  * @param {number[] | Pattern} magnitudes List of [0, 1] magnitudes for partials. 0th entry is the fundamental harmonic (i.e. DC offset is skipped)
  * @example
  * s("user").seg(16).n(irand(8)).scale("A:major")
@@ -3889,7 +3913,7 @@ export const partials = (list) => {
  * Rotates the harmonics of one of the core synths ('sine', 'tri', 'saw', 'user', ..) by a list of phases
  *
  * @name phases
- * @tags fx, superdough
+ * @tags superdough
  * @param {number[] | Pattern} phases List of [0, 1) phases for partials. 0th entry is the fundamental phase (i.e. DC offset is skipped)
  * @example
  * // Phase cancellation
@@ -3911,7 +3935,7 @@ export const phases = (list) => {
  * calls and/or in a single .FX(fx1, fx2, ..) call. The fx1, .. are _patterns_ which
  * establish the controls of the given effect. See examples.
  * @name FX
- * @tags fx, superdough
+ * @tags superdough
  * @memberof Pattern
  * @returns Pattern
  * @example
@@ -3962,7 +3986,7 @@ const _asArrayPattern = (pats) => {
  *     by wrapping them inside a function in K (see example).
  *
  * @name K
- * @tags generators, fx, superdough
+ * @tags generators, superdough
  * @param {KabelsalatExpression | Function} expr Kabelsalat graph definition
  * @memberof Pattern
  * @returns Pattern
