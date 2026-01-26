@@ -64,7 +64,7 @@ function xenOffset(xenScale, offset, index = 0) {
 // scaleNameOrRatios: string || number[], steps?: number
 
 /**
- * Assumes a numerical pattern of EDO steps. Accepts all scale names of `tune` as well as any arbitrary edo scale. Returns a new pattern with all values mapped to their associated frequency, assuming a base frequency of 220hz.
+ * Assumes a numerical pattern of scale steps, and a scale. Scales accepted are all preset scale names of `tune`, arbitrary edos such as 31edo, or an array of frequency ratios. Returns a new pattern with all values mapped to their associated frequency, assuming a base frequency of 220hz.
  *
  * @name xen
  * @returns Pattern
@@ -72,7 +72,7 @@ function xenOffset(xenScale, offset, index = 0) {
  * @param {(string | number[] )} scaleNameOrRatios
  * @tags tonal
  * @example
- * // A major tried in 31edo:
+ * // A major triad in 31edo:
  * "0 8 18".xen("31edo").freq().piano()
  * @example
  * // You can also use xen with frequency ratios.
