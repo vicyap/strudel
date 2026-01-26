@@ -64,7 +64,7 @@ function xenOffset(xenScale, offset, index = 0) {
 // scaleNameOrRatios: string || number[], steps?: number
 
 /**
- * Assumes a numerical pattern of scale steps, and a scale. Scales accepted are all preset scale names of `tune`, arbitrary edos such as 31edo, or an array of frequency ratios. Returns a new pattern with all values mapped to their associated frequency, assuming a base frequency of 220hz.
+ * Assumes a numerical pattern of scale steps, and a scale. Scales accepted are all preset scale names of `tune`, arbitrary edos such as 31edo, or an array of frequency ratios. Assumes scales repeat at octave (2/1). Returns a new pattern with all values mapped to their associated frequency, assuming a base frequency of 220hz.
  *
  * @name xen
  * @returns Pattern
