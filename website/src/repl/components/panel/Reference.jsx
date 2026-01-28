@@ -4,7 +4,11 @@ import jsdocJson from '../../../../../doc.json';
 import { Textbox } from '@src/repl/components/panel/SettingsTab';
 import { settingsMap, useSettings } from '@src/settings.mjs';
 
-const isValid = ({ name, description }) => name && !name.startsWith('_') && !!description;
+const isValid = ({ name, description, tags = [] }) => {
+  const isSupradoughOnly = tags.includes('supradough') && !tags.includes('superdough');
+  const isSuperdirtOnly = tags.includes('superdirt') && !tags.includes('superdough');
+  return name && !name.startsWith('_') && !!description && !isSupradoughOnly && !isSuperdirtOnly;
+};
 
 const availableFunctions = (() => {
   const seen = new Set(); // avoid repetition
@@ -14,36 +18,32 @@ const availableFunctions = (() => {
     if (seen.has(doc.name)) continue;
 
     // jsdoc also uses "tags" for when you use @something in the comments and it doesn't know what
-    // @something is. We only want data from comments like `@tags fx, superdough` here.
+    // @something is. We only want data from comments like `@tags superdough` here.
     // If nothing is specified, we default to "untagged" for debugging
     doc.tags = doc.tags?.filter((t) => t && typeof t === 'string') || ['untagged'];
-    functions.push(doc);
 
     const synonyms = doc.synonyms || [];
+    let names = [doc.name];
     seen.add(doc.name);
     for (const s of synonyms) {
       if (!s || seen.has(s)) continue;
+      names.push(s);
       seen.add(s);
-      // Swap `doc.name` in for `s` in the list of synonyms
-      const synonymsWithDoc = [doc.name, ...synonyms].filter((x) => x && x !== s);
-      functions.push({
-        ...doc,
-        name: s, // update names for the synonym
-        longname: s,
-        synonyms: synonymsWithDoc,
-        synonyms_text: synonymsWithDoc.join(', '),
-      });
     }
+    doc.allNames = names.join(' ');
+    doc.synonyms = names.slice(1);
+    functions.push(doc);
   }
   return functions.sort((a, b) => /* a.meta.filename.localeCompare(b.meta.filename) +  */ a.name.localeCompare(b.name));
 })();
 
 const tagCounts = {};
+const ignoredTags = ['supradough', 'superdirt'];
 // const tagOptions = { all: `all (${availableFunctions.length})` };
 const tagOptions = { all: `all` };
 for (const doc of availableFunctions) {
   (doc.tags || ['untagged']).forEach((t) => {
-    if (typeof t === 'string' && t) {
+    if (typeof t === 'string' && t && !ignoredTags.includes(t)) {
       tagCounts[t] = (tagCounts[t] || 0) + 1;
       //tagOptions[t] = `${t} (${tagCounts[t]})`;
       tagOptions[t] = t;
@@ -82,7 +82,7 @@ export const Reference = memo(function Reference() {
       }
       const lowerCaseSearch = search.toLowerCase();
       return (
-        entry.name.toLowerCase().includes(lowerCaseSearch) ||
+        (entry.allNames || entry.name).toLowerCase().includes(lowerCaseSearch) ||
         (entry.synonyms?.some((s) => s.toLowerCase().includes(lowerCaseSearch)) ?? false)
       );
     });
@@ -151,7 +151,7 @@ export const Reference = memo(function Reference() {
             <Fragment key={`entry-${entry.name}`}>
               <a
                 className={
-                  'cursor-pointer hover:opacity-50 text-ellipsis block' +
+                  'whitespace-nowrap cursor-pointer hover:opacity-50 text-ellipsis block' +
                   (entry.name === selectedFunction ? 'bg-lineHighlight font-bold' : '')
                 }
                 onClick={() => {
@@ -162,7 +162,7 @@ export const Reference = memo(function Reference() {
                   }
                 }}
               >
-                {entry.name}
+                {entry.name} {entry.synonyms && <small className="opacity-50">{entry.synonyms?.join(', ')}</small>}
               </a>{' '}
             </Fragment>
           ))}
@@ -204,7 +204,7 @@ export const Reference = memo(function Reference() {
                 </h3>
                 {entry.tags && (
                   <span className="ml-2 text-xs text-foreground border border-muted px-1 py-0.5">
-                    {entry.tags.join(', ')}
+                    {entry.tags.filter((t) => !ignoredTags.includes(t)).join(', ')}
                   </span>
                 )}
               </div>

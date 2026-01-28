@@ -13,18 +13,18 @@ import {
 } from '@codemirror/view';
 import { persistentAtom } from '@nanostores/persistent';
 import { logger, registerControl, repl } from '@strudel/core';
-import { cleanupDraw, Drawer } from '@strudel/draw';
-
+import { cleanupDraw, cleanupDrawContext, Drawer } from '@strudel/draw';
 import { isAutoCompletionEnabled } from './autocomplete.mjs';
 import { basicSetup } from './basicSetup.mjs';
+import { evalBlock } from './block_utilities.mjs';
 import { flash, isFlashEnabled } from './flash.mjs';
 import { highlightMiniLocations, isPatternHighlightingEnabled, updateMiniLocations } from './highlight.mjs';
 import { keybindings } from './keybindings.mjs';
-import { sliderPlugin, updateSliderWidgets } from './slider.mjs';
+import { jumpToCharacter } from './labelJump.mjs';
+import { getSliderWidgets, sliderPlugin, updateSliderWidgets } from './slider.mjs';
 import { activateTheme, initTheme, theme } from './themes.mjs';
 import { isTooltipEnabled } from './tooltip.mjs';
-import { updateWidgets, widgetPlugin } from './widget.mjs';
-import { jumpToCharacter } from './labelJump.mjs';
+import { getActiveWidgets, updateWidgets, widgetPlugin } from './widget.mjs';
 
 export { toggleBlockComment, toggleBlockCommentByLine, toggleComment, toggleLineComment } from '@codemirror/commands';
 
@@ -64,6 +64,7 @@ export const defaultSettings = {
   isLineWrappingEnabled: false,
   isTabIndentationEnabled: false,
   isMultiCursorEnabled: false,
+  isBlockBasedEvalEnabled: false,
   theme: 'strudelTheme',
   fontFamily: 'monospace',
   fontSize: 18,
@@ -75,7 +76,7 @@ export const codemirrorSettings = persistentAtom('codemirror-settings', defaultS
 });
 
 // https://codemirror.net/docs/guide/
-export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, root, mondo }) {
+export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, root, mondo, strudelMirror }) {
   const settings = codemirrorSettings.get();
   const initialSettings = Object.keys(compartments).map((key) =>
     compartments[key].of(extensions[key](parseBooleans(settings[key]))),
@@ -105,11 +106,26 @@ export function initEditor({ initialCode = '', onChange, onEvaluate, onStop, roo
         keymap.of([
           {
             key: 'Ctrl-Enter',
-            run: () => onEvaluate?.(),
+            run: () => {
+              // issue with referencing settings, this works more reliably
+              if (strudelMirror?.isBlockBasedEvalEnabled) {
+                evalBlock(strudelMirror);
+                return true;
+              } else {
+                return onEvaluate?.();
+              }
+            },
           },
           {
             key: 'Alt-Enter',
-            run: () => onEvaluate?.(),
+            run: () => {
+              if (strudelMirror?.isBlockBasedEvalEnabled) {
+                evalBlock(strudelMirror);
+                return true;
+              } else {
+                return onEvaluate?.();
+              }
+            },
           },
           {
             key: 'Ctrl-.',
@@ -171,6 +187,7 @@ export class StrudelMirror {
     this.onDraw = onDraw || this.draw;
     this.id = id || s4();
     this.solo = solo;
+    this.isBlockBasedEvalEnabled = false; // Will be updated via updateSettings()
 
     this.drawer = new Drawer((haps, time, _, painters) => {
       const currentFrame = haps.filter((hap) => hap.isActive(time));
@@ -201,20 +218,28 @@ export class StrudelMirror {
           cleanupDraw(true, id);
         }
       },
-      beforeEval: async () => {
-        cleanupDraw(true, id);
+      beforeEval: async ({ blockBased } = {}) => {
+        // Only clean up all drawings for full evaluation
+        // Block-based eval should preserve animations (like .scope()) from other blocks
+        if (!blockBased) {
+          cleanupDraw(true, id);
+        }
         await this.prebaked;
         await replOptions?.beforeEval?.();
       },
       afterEval: (options) => {
         // remember for when highlighting is toggled on
-        this.miniLocations = options.meta?.miniLocations;
+        this.miniLocations = options.meta?.miniLocations || [];
         this.widgets = options.meta?.widgets;
+
         const sliders = this.widgets.filter((w) => w.type === 'slider');
-        updateSliderWidgets(this.editor, sliders);
         const widgets = this.widgets.filter((w) => w.type !== 'slider');
-        updateWidgets(this.editor, widgets);
-        updateMiniLocations(this.editor, this.miniLocations);
+        // range-aware update for block-based evaluation
+        const range = options.range && options.range.length >= 2 ? options.range : null;
+
+        updateSliderWidgets(this.editor, sliders, range);
+        updateWidgets(this.editor, widgets, range);
+        updateMiniLocations(this.editor, this.miniLocations, range);
         replOptions?.afterEval?.(options);
         // if no painters are set (.onPaint was not called), then we only need
         // the present moment (for highlighting)
@@ -222,8 +247,14 @@ export class StrudelMirror {
         this.drawer.setDrawTime(drawTime);
         // invalidate drawer after we've set the appropriate drawTime
         this.drawer.invalidate(this.repl.scheduler);
+
+        // Clean up draw context if a non-inline widget was removed
+        if (options.widgetRemoved) {
+          cleanupDrawContext(id);
+        }
       },
     });
+    this.cleanupDrawContext = () => cleanupDrawContext(id);
     this.editor = initEditor({
       root,
       initialCode,
@@ -236,7 +267,9 @@ export class StrudelMirror {
       onEvaluate: () => this.evaluate(),
       onStop: () => this.stop(),
       mondo: replOptions.mondo,
+      strudelMirror: this,
     });
+
     const cmEditor = this.root.querySelector('.cm-editor');
     if (cmEditor) {
       this.root.style.display = 'block';
@@ -306,8 +339,9 @@ export class StrudelMirror {
     this.flash();
     await this.repl.evaluate(this.code, autostart);
   }
+
   async stop() {
-    this.repl.scheduler.stop();
+    this.repl.stop();
   }
 
   // Listen for global stop requests (e.g., from Vim :q)
@@ -326,8 +360,8 @@ export class StrudelMirror {
       this.evaluate();
     }
   }
-  flash(ms) {
-    flash(this.editor, ms);
+  flash(ms, range) {
+    flash(this.editor, ms, range);
   }
   highlight(haps, time) {
     highlightMiniLocations(this.editor, time, haps);
@@ -359,6 +393,10 @@ export class StrudelMirror {
   setLineWrappingEnabled(enabled) {
     this.reconfigureExtension('isLineWrappingEnabled', enabled);
   }
+
+  setBlockBasedEvalEnabled(enabled) {
+    this.reconfigureExtension('isBlockBasedEvalEnabled', enabled);
+  }
   setBracketMatchingEnabled(enabled) {
     this.reconfigureExtension('isBracketMatchingEnabled', enabled);
   }
@@ -380,6 +418,10 @@ export class StrudelMirror {
     for (let key in extensions) {
       this.reconfigureExtension(key, settings[key]);
     }
+    // Update block-based eval setting on the instance
+    if (settings.isBlockBasedEvalEnabled !== undefined) {
+      this.isBlockBasedEvalEnabled = parseBooleans(settings.isBlockBasedEvalEnabled);
+    }
     const updated = { ...codemirrorSettings.get(), ...settings };
     codemirrorSettings.set(updated);
   }
@@ -400,6 +442,16 @@ export class StrudelMirror {
       insert: code,
     };
     this.editor.dispatch({ changes });
+  }
+  // used for debugging but could serve other purposes
+  getActiveWidgets() {
+    return getActiveWidgets(this.editor);
+  }
+  getSliderWidgets() {
+    return getSliderWidgets(this.editor);
+  }
+  getMiniLocations() {
+    return this.miniLocations;
   }
   clear() {
     this.onStartRepl && document.removeEventListener('start-repl', this.onStartRepl);
