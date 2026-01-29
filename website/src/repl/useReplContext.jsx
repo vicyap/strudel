@@ -109,7 +109,12 @@ export function useReplContext() {
         // Get the full buffer content from the editor instead of just the evaluated block
         const fullBufferCode = editorRef.current?.code || code;
         setLatestCode(fullBufferCode);
-        window.location.hash = '#' + code2hash(fullBufferCode);
+
+        try {
+          window.location.hash = '#' + code2hash(fullBufferCode);
+        } catch (e) {
+          console.warn('[useReplContext] Failed to update hash:', e.message);
+        }
         setDocumentTitle(fullBufferCode);
         const viewingPatternData = getViewingPatternData();
         setVersionDefaultsFrom(fullBufferCode);
