@@ -103,8 +103,8 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
       const { n, value, ...otherValues } = hVal;
       const scale = getXenScale(scaleNameOrRatios);
       let frequency = xenOffset(scale, parseNumeral(hVal.n));
-    // 10 is somewhat arbitrary 
-    frequency = parseFloat(frequency.toPrecision(10))
+    // 10 is somewhat arbitrary
+    frequency = parseFloat(frequency.toPrecision(10));
       hap.value = isObject ? {...otherValues, freq:  frequency } : frequency
       return hap;
     });
