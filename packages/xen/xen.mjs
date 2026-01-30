@@ -53,7 +53,7 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
     haps = haps.map(hap=>{
       let hVal = hap.value
       const isObject = typeof hVal === 'object';
-      // If hVal is a pure value, place it on `n` so that we interpret it as a scale degree
+      // If hVal is a pure value, place it on `n` so that we interpret it as an edoStep
       hVal = isObject ? hVal : { n: hVal };
       const { n, value, ...otherValues } = hVal;
       const scale = getXenScale(scaleNameOrRatios);
