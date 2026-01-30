@@ -1,13 +1,16 @@
-import { defaultSettings, settingsMap, useSettings } from '../../../settings.mjs';
-import { themes } from '@strudel/codemirror';
+import { defaultSettings, settingsMap, useSettings, storePrebakeScript, setSettingsTab } from '../../../settings.mjs';
+import { themes, codemirrorSettings, PrebakeCodeMirror } from '@strudel/codemirror';
 import { confirmAndReloadPage, isUdels } from '../../util.mjs';
 import { ButtonGroup } from './Forms.jsx';
 import { AudioDeviceSelector } from './AudioDeviceSelector.jsx';
 import { AudioEngineTargetSelector } from './AudioEngineTargetSelector.jsx';
 import { confirmDialog } from '../../util.mjs';
 import { DEFAULT_MAX_POLYPHONY, setMaxPolyphony, setMultiChannelOrbits } from '@strudel/webaudio';
-import { SpecialActionButton } from '../button/action-button.jsx';
-import { ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
+import { IconButton, SpecialActionButton } from '../button/action-button.jsx';
+import { exportScript, ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
+import { useCallback, useEffect, useRef } from 'react';
+import { Code } from '../Code.jsx';
+import { DocumentArrowUpIcon, DocumentCheckIcon } from '@heroicons/react/16/solid';
 
 function cx(...classes) {
   // : Array<string | undefined>
@@ -123,7 +126,7 @@ const fontFamilyOptions = {
   galactico: 'galactico',
 };
 
-export function SettingsTab({ started }) {
+function MainSettingsContent({ started }) {
   const {
     theme,
     keybindings,
@@ -155,7 +158,7 @@ export function SettingsTab({ started }) {
   const shouldAlwaysSync = isUdels();
   const canChangeAudioDevice = AudioContext.prototype.setSinkId != null;
   return (
-    <div className="p-4 text-foreground space-y-4 w-full" style={{ fontFamily }}>
+    <div className="p-4 text-foreground space-y-4 w-full overflow-auto" style={{ fontFamily }}>
       {canChangeAudioDevice && (
         <FormItem label="Audio Output Device">
           <AudioDeviceSelector
@@ -233,14 +236,6 @@ export function SettingsTab({ started }) {
           />
         </FormItem>
       </div>
-      <FormItem label="Prebake">
-        <ImportPrebakeScriptButton />
-        <Checkbox
-          label="Include prebake script in share"
-          onChange={(cbEvent) => settingsMap.setKey('includePrebakeScriptInShare', cbEvent.target.checked)}
-          value={includePrebakeScriptInShare}
-        />
-      </FormItem>
 
       <FormItem label="Keybindings">
         <ButtonGroup
@@ -359,6 +354,97 @@ export function SettingsTab({ started }) {
           restore default settings
         </SpecialActionButton>
       </FormItem>
+    </div>
+  );
+}
+
+function PrebakeSettingsContent() {
+  const { fontFamily, includePrebakeScriptInShare, prebakeScript } = useSettings();
+  const init = useCallback(() => {
+    const settings = codemirrorSettings.get();
+    // TODO: This instance need to be created at the top level to not create a new instance here
+    const prebakeCodemirror = new PrebakeCodeMirror(
+      prebakeScript,
+      (code) => storePrebakeScript(code),
+      containerRef,
+      editorRef,
+      settings,
+    );
+    editorRef.current = prebakeCodemirror;
+  }, []);
+  const editorRef = useRef();
+  const containerRef = useRef();
+  const handleSaveEvent = async (e) => {
+    await editorRef.current?.savePrebake();
+    e?.cancelable && e.preventDefault?.();
+  };
+  const handleToggleComment = (e) => {
+    editorRef.current?.toggleComment();
+    e?.cancelable && e.preventDefault?.();
+  };
+  const handleSetCode = (code) => {
+    editorRef.current?.setCode(code);
+  };
+  useEffect(() => {
+    document.addEventListener('prebake-evaluate', handleSaveEvent);
+    document.addEventListener('prebake-toggle-comment', handleToggleComment);
+    return () => {
+      document.removeEventListener('prebake-evaluate', handleSaveEvent);
+      document.removeEventListener('prebake-toggle-comment', handleToggleComment);
+    };
+  }, []);
+  return (
+    <div className="text-foreground w-full overflow-auto" style={{ fontFamily }}>
+      <div className="px-4 py-1 flex flex-row items-center space-x-4 justify-between">
+        <IconButton
+          Icon={DocumentCheckIcon}
+          onClick={async () => {
+            await editorRef.current?.savePrebake();
+          }}
+        >
+          save
+        </IconButton>
+        <div className="flex flex-row space-x-2">
+          <ImportPrebakeScriptButton updateEditor={handleSetCode} />
+          <IconButton
+            Icon={DocumentArrowUpIcon}
+            onClick={async () => {
+              console.log('Exporting');
+              await exportScript(prebakeScript);
+            }}
+          >
+            export
+          </IconButton>
+        </div>
+        <Checkbox
+          label="Include prebake script in share"
+          onChange={(cbEvent) => settingsMap.setKey('includePrebakeScriptInShare', cbEvent.target.checked)}
+          value={includePrebakeScriptInShare}
+        />
+      </div>
+      <div className="flex flex-col overflow-hidden h-full border-t border-muted">
+        <Code containerRef={containerRef} editorRef={editorRef} init={init} />
+      </div>
+    </div>
+  );
+}
+export function SettingsTab({ started }) {
+  const { settingsTab } = useSettings();
+  return (
+    <div className="w-full h-full text-foreground flex flex-col overflow-hidden">
+      <div className="px-2 shrink-0 h-8 space-x-4 flex max-w-full overflow-x-auto border-b border-muted">
+        <ButtonGroup
+          wrap
+          value={settingsTab}
+          onChange={(value) => setSettingsTab(value)}
+          items={{
+            settings: 'settings',
+            prebake: 'prebake',
+          }}
+        ></ButtonGroup>
+      </div>
+      {settingsTab === 'settings' && <MainSettingsContent started={started} />}
+      {settingsTab === 'prebake' && <PrebakeSettingsContent />}
     </div>
   );
 }

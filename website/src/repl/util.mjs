@@ -108,6 +108,7 @@ export function confirmDialog(msg) {
   });
 }
 export const SETTING_CHANGE_RELOAD_MSG = 'Changing this setting requires the window to reload itself. OK?';
+export const PREBAKE_CHANGE_MSG = 'Warning: This will overwrite the current prebake.\nContinue?';
 export function confirmAndReloadPage(onSuccess) {
   confirmDialog(SETTING_CHANGE_RELOAD_MSG).then((r) => {
     if (r == true) {

@@ -1,5 +1,5 @@
 import { defaultKeymap } from '@codemirror/commands';
-import { Prec, EditorState } from '@codemirror/state';
+import { Prec, EditorState, StateField } from '@codemirror/state';
 import { keymap, ViewPlugin } from '@codemirror/view';
 // import { searchKeymap } from '@codemirror/search';
 import { emacs } from '@replit/codemirror-emacs';
@@ -8,6 +8,15 @@ import { vim, Vim } from '@replit/codemirror-vim';
 import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 import { helix, commands } from 'codemirror-helix';
 import { logger } from '@strudel/core';
+
+export const prebakeField = StateField.define({
+  create() {
+    return 'PrebakeEditor';
+  },
+  update(value, _tr) {
+    return value;
+  },
+});
 
 const vscodePlugin = ViewPlugin.fromClass(
   class {
@@ -98,7 +107,11 @@ try {
       Vim.defineAction('strudelToggleComment', (cm) => {
         const view = cm?.view || cm;
         try {
-          const ev = new CustomEvent('repl-toggle-comment', { detail: { source: 'vim', view }, cancelable: true });
+          const toggleEventName =
+            view?.cm6?.state?.field(prebakeField, false) !== undefined
+              ? 'prebake-toggle-comment'
+              : 'repl-toggle-comment';
+          const ev = new CustomEvent(toggleEventName, { detail: { source: 'vim', view }, cancelable: true });
           document.dispatchEvent(ev);
         } catch (e) {
           console.error('strudelToggleComment dispatch failed', e);
@@ -119,6 +132,17 @@ try {
     // :w to evaluate
     Vim.defineEx('write', 'w', (cm) => {
       const view = cm?.view || cm; // CM6 Vim passes either an object with view or the view itself
+      const isPrebake = view?.cm6?.state?.field(prebakeField, false) !== undefined;
+      if (isPrebake) {
+        let prebakeEventHandled = false;
+        try {
+          const ev = new CustomEvent('prebake-evaluate', { detail: { source: 'vim', view }, cancelable: true });
+          prebakeEventHandled = document.dispatchEvent(ev) === false; // false means preventDefault was called
+          return;
+        } catch (e) {
+          console.error('Error dispatching repl-evaluate event', e);
+        }
+      }
       try {
         view?.focus?.();
         // Let the app know this came from Vim :w

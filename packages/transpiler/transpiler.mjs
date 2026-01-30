@@ -25,6 +25,7 @@ export function transpiler(input, options = {}) {
     emitMiniLocations = true,
     emitWidgets = true,
     blockBased = false,
+    prebake = false,
     range = [],
   } = options;
 
@@ -260,7 +261,9 @@ export function transpiler(input, options = {}) {
       // For block-based eval, add silence as the return value when block ends with declaration
       body.push(silenceExpression);
     } else {
-      throw new Error('unexpected ast format without body expression');
+      if (!prebake) {
+        throw new Error('unexpected ast format without body expression');
+      }
     }
   }
 
@@ -273,7 +276,7 @@ export function transpiler(input, options = {}) {
   }
 
   // add return to last statement
-  if (addReturn) {
+  if (addReturn && !prebake) {
     const { expression } = body[body.length - 1];
     body[body.length - 1] = {
       type: 'ReturnStatement',

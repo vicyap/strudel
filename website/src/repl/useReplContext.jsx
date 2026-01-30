@@ -6,7 +6,7 @@ This program is free software: you can redistribute it and/or modify it under th
 
 import { code2hash, getPerformanceTimeSeconds, logger, silence } from '@strudel/core';
 import { getDrawContext } from '@strudel/draw';
-import { evaluate, transpiler } from '@strudel/transpiler';
+import { evaluate, evaluateUserPrebake, transpiler } from '@strudel/transpiler';
 import {
   getAudioContextCurrentTime,
   renderPatternAudio,
@@ -89,7 +89,7 @@ export function useReplContext() {
       prebake: async () =>
         Promise.all([modulesLoading, presets]).then(() => {
           if (prebakeScript?.length) {
-            return evaluate(prebakeScript ?? '');
+            return evaluateUserPrebake(prebakeScript ?? '');
           }
         }),
       onUpdateState: (state) => {
@@ -180,6 +180,16 @@ export function useReplContext() {
     });
     editorRef.current?.updateSettings(editorSettings);
   }, [_settings]);
+
+  useEffect(() => {
+    const prebake = async () =>
+      Promise.all([modulesLoading, presets]).then(() => {
+        if (prebakeScript?.length) {
+          return evaluateUserPrebake(prebakeScript ?? '');
+        }
+      });
+    editorRef.current?.updatePrebake(prebake);
+  }, [prebakeScript]);
 
   //
   // UI Actions

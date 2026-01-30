@@ -17,22 +17,39 @@ export function SpecialActionButton(props) {
   );
 }
 
-export function ActionInput({ label, className, ...props }) {
-  return (
-    <label className={cx('inline-flex items-center cursor-pointer ', className)}>
-      <input {...props} className="sr-only peer" />
+export function IconButton(props) {
+  const { Icon, label, children, labelIsHidden, className, ...buttonProps } = props;
 
+  return (
+    <button
+      className={cx('space-x-1 max-w-[300px] inline-flex items-center cursor-pointer hover:opacity-50', className)}
+      title={label}
+      {...buttonProps}
+    >
+      <Icon className="w-5 h-5" />
+      <span className="max-w-[300px]">{label}</span>
+      {children}
+    </button>
+  );
+}
+
+export function ActionInput({ Icon, label, className, ...props }) {
+  return (
+    <label className={cx('space-x-1 inline-flex items-center cursor-pointer ', className)}>
+      <input {...props} className="sr-only peer" />
+      <Icon className="w-5 h-5 peer-hover:opacity-50" />
       <span className="inline-flex items-center peer-hover:opacity-50">{label}</span>
     </label>
   );
 }
 
-export function SpecialActionInput({ className, ...props }) {
+export function SpecialActionInput({ Icon, className, ...props }) {
   return (
     <ActionInput
       {...props}
+      Icon={Icon}
       className={className}
-      label={<span className="bg-background p-2 max-w-[300px]">{props.label}</span>}
+      label={<span className="max-w-[300px]">{props.label}</span>}
     />
   );
 }

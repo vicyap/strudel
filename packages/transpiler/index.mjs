@@ -3,3 +3,4 @@ import { transpiler } from './transpiler.mjs';
 export * from './transpiler.mjs';
 
 export const evaluate = (code) => _evaluate(code, transpiler);
+export const evaluateUserPrebake = (code) => _evaluate(code, transpiler, { prebake: true });
