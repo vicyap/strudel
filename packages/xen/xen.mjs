@@ -4,7 +4,7 @@ Copyright (C) 2022 Strudel contributors - see <https://codeberg.org/uzu/strudel/
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details. You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { register, _mod, parseNumeral } from '@strudel/core';
+import { register, _mod, parseNumeral, removeUndefineds } from '@strudel/core';
 
 export function edo(name) {
   if (!/^[1-9]+[0-9]*edo$/.test(name)) {
@@ -49,11 +49,20 @@ function xenOffset(xenScale, offset, index = 0) {
 
 // scaleNameOrRatios: string || number[], steps?: number
 export const xen = register('xen', function (scaleNameOrRatios, pat) {
-  return pat.withHap((hap) => {
-    const scale = getXenScale(scaleNameOrRatios);
-    const frequency = xenOffset(scale, parseNumeral(hap.value));
-    return hap.withValue(() => frequency);
-  });
+  return pat.withHaps((haps) => {
+    haps = haps.map(hap=>{
+      let hVal = hap.value
+      const isObject = typeof hVal === 'object';
+      // If hVal is a pure value, place it on `n` so that we interpret it as a scale degree
+      hVal = isObject ? hVal : { n: hVal };
+      const { n, value, ...otherValues } = hVal;
+      const scale = getXenScale(scaleNameOrRatios);
+      const frequency = xenOffset(scale, parseNumeral(hVal.n));
+      hap.value = isObject ? {...otherValues, freq:  frequency } : frequency
+      return hap;
+    });
+    return removeUndefineds(haps)
+  })
 });
 
 export const tuning = register('tuning', function (ratios, pat) {
