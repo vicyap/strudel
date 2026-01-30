@@ -96,7 +96,9 @@ function xenOffset(xenScale, offset, index = 0) {
 export const xen = register('xen', function (scaleNameOrRatios, pat) {
   return pat.withHap((hap) => {
     const scale = getXenScale(scaleNameOrRatios);
-    const frequency = xenOffset(scale, parseNumeral(hap.value));
+    let frequency = xenOffset(scale, parseNumeral(hap.value));
+    // 10 is somewhat arbitrary 
+    frequency = parseFloat(frequency.toPrecision(10))
     return hap.withValue(() => frequency);
   });
 });
