@@ -97,8 +97,8 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
   return pat.withHap((hap) => {
     const scale = getXenScale(scaleNameOrRatios);
     let frequency = xenOffset(scale, parseNumeral(hap.value));
-    // 10 is somewhat arbitrary 
-    frequency = parseFloat(frequency.toPrecision(10))
+    // 10 is somewhat arbitrary
+    frequency = parseFloat(frequency.toPrecision(10));
     return hap.withValue(() => frequency);
   });
 });
