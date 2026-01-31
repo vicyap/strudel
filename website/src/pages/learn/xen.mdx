@@ -1,16 +1,20 @@
 ---
-title: Xen Harmonic Functions
+title: Xenharmonic Functions
 layout: ../../layouts/MainLayout.astro
 ---
 
 import { MiniRepl } from '../../docs/MiniRepl';
 import { JsDoc } from '../../docs/JsDoc';
 
-# Xen Harmonic Functions
+# Xenharmonic Functions (experimental)
+
+{/* TODO expand explanation of xenharmony */}
 
 These functions allow the use of scales other than your typical chromatic 12 based ones.
 
 ### tune(scale)
+
+{/* TODO (maybe): combine jsdoc things in tune.mjs with here */}
 
 <JsDoc client:idle name="tune" h={0} />
 
@@ -93,3 +97,23 @@ Note the legato and reverb effects make sure the sound of the strumming gets to 
 tones sound even more alive, too.
 
 The `tranh3` tuning has a similar set of notes, with two clashing. You might trying plugging that in above and see if you find a favorite strumming pattern.
+
+You can also give tune a list of frequencies to use as the scale:
+
+<MiniRepl
+  client:idle
+  tune={`"0 1 2 3 4".tune([
+    261.6255653006, 
+    302.72962012827, 
+    350.29154279212, 
+    405.32593044476, 
+    469.00678383895, 
+    523.2511306012
+  ]).mul(220).freq();`}
+/>
+
+### xen(scaleOrRatios)
+
+{/* TODO add explanation of EDO to documentation */}
+
+<JsDoc client:idle name="Pattern.xen" h={0} />
