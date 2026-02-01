@@ -28,12 +28,14 @@ function withBase(freq, scale) {
 
 const defaultBase = 220;
 
+const isEdo = (scale) => /^[1-9]+[0-9]*edo$/.test(scale);
+
 // Assumes a base of 220. Returns a filtered scale based on 'indices'
 // NOTE: indices functionality is unused
 function getXenScale(scale, indices) {
   let tune = new Tune();
   if (typeof scale === 'string') {
-    if (/^[1-9]+[0-9]*edo$/.test(scale)) {
+    if (isEdo(scale)) {
       scale = edo(scale);
     } else if (presets[scale]) {
       scale = presets[scale];
@@ -72,7 +74,7 @@ function xenOffset(xenScale, offset, index = 0) {
  * @param {(string | number[] )} scaleNameOrRatios
  * @tags tonal
  * @example
- * // A major triad in 31edo:
+ * // A minor triad in 31edo:
  * "0 8 18".xen("31edo").freq().piano()
  * @example
  * // You can also use xen with frequency ratios.
@@ -95,22 +97,75 @@ function xenOffset(xenScale, offset, index = 0) {
 // TODO (maybe): should this return freq ratios like tune does, for parity's sake?
 export const xen = register('xen', function (scaleNameOrRatios, pat) {
   return pat.withHaps((haps) => {
-    haps = haps.map(hap=>{
-      let hVal = hap.value
+    haps = haps.map((hap) => {
+      let hVal = hap.value;
       const isObject = typeof hVal === 'object';
       // If hVal is a pure value, place it on `n` so that we interpret it as an edoStep
       hVal = isObject ? hVal : { n: hVal };
       const { n, value, ...otherValues } = hVal;
       const scale = getXenScale(scaleNameOrRatios);
       let frequency = xenOffset(scale, parseNumeral(hVal.n));
-    // 10 is somewhat arbitrary
-    frequency = parseFloat(frequency.toPrecision(10));
-      hap.value = isObject ? {...otherValues, freq:  frequency } : frequency
-      return hap;
+      // 10 is somewhat arbitrary
+      frequency = parseFloat(frequency.toPrecision(10));
+      hap.value = isObject ? { ...otherValues, freq: frequency } : frequency;
+      return isEdo(scaleNameOrRatios)
+        ? hap.setContext({ ...hap.context, edoSize: scaleNameOrRatios.match(/^([1-9]+[0-9]*)edo$/)[1] })
+        : hap;
     });
-    return removeUndefineds(haps)
-  })
+    return removeUndefineds(haps);
+  });
 });
+
+/**
+ * Frequency transpose. Assumes pattern either has `freq` set, or has values that can be interpreted as frequencies
+ * amt has optional `edoSize` param, defaults to 12.
+ * If haps have edoSize param set, such as from the output of `xen("edo31")`, 
+ * `ftrans` will fallback to that instead of 12 as the default. 
+ * 
+ * Transposes the frequency by `amt` edoSteps
+ * @name ftranspose
+ * @synonyms ftrans, fTrans ftranspose, fTranspose
+ * @param {number} amt
+ * @param {number} edoSize (optional)
+ * @returns {Pattern}
+ */
+
+/* f = frequency (Hz)
+  n = edo (steps per octave)
+  x = number of steps
+  if 0\n = f, then x\n = f * 2^(x/n)
+  example: 5edo, 0\5 = 220 Hz, then 2\5 = 220*2^(2/5) = 290.29 Hz */
+
+export const { ftrans, fTrans, ftranspose, fTranspose } = register(
+  ['ftrans', 'fTrans', 'ftranspose', 'fTranspose'],
+  (amt, pat) => {
+    let edoSize;
+    let numSteps;
+    if (Array.isArray(amt)) {
+      edoSize = amt[1];
+      numSteps = amt[0];
+    } else {
+      numSteps = amt;
+    }
+    return pat.withHaps((haps) => {
+      haps = haps.map((hap) => {
+        let hVal = hap.value;
+        const isObject = typeof hVal === 'object';
+        hVal = isObject ? hVal : { freq: hVal };
+        let { freq, value, ...otherValues } = hVal;
+        if (edoSize == undefined && hap.context.edoSize != undefined) {
+          edoSize = hap.context.edoSize;
+        } else if (edoSize == undefined) {
+          edoSize = 12;
+        }
+        freq = freq * Math.pow(2, numSteps / edoSize);
+        hap.value = isObject ? { ...otherValues, freq } : freq;
+        return hap.setContext({ ...hap.context, edoSize });
+      });
+      return removeUndefineds(haps);
+    });
+  },
+);
 
 // not sure there's a point to having this and the above, seems like a proto version of the above.
 export const tuning = register('tuning', function (ratios, pat) {
