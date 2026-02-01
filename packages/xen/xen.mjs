@@ -59,7 +59,7 @@ function xenOffset(xenScale, offset, index = 0) {
   return xenScale[i] * Math.pow(2, oct);
 }
 
-const trimFreq = freq => parseFloat(freq.toPrecision(10));
+const trimFreq = (freq) => parseFloat(freq.toPrecision(10));
 
 // accepts a scale name such as 31edo, and a pattern
 // pattern expected to follow format such that a value can be mapped
@@ -123,12 +123,12 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
 /**
  * Frequency transpose. Assumes pattern either has `freq` set, or has values that can be interpreted as frequencies
  * amt has optional `edoSize` param, defaults to 12.
- * If haps have edoSize param set, such as from the output of `xen("edo31")`,
+ * If haps have edoSize param set, such as from the output of `xen("31edo")`,
  * `ftrans` will fallback to that instead of 12 as the default.
  *
  * Transposes the frequency by `amt` edoSteps
  * @name ftranspose
- * @synonyms ftrans, fTrans ftranspose, fTranspose
+ * @synonyms ftrans, fTrans, ftranspose, fTranspose
  * @param {number} amt
  * @param {number} edoSize (optional)
  * @returns {Pattern}
@@ -185,7 +185,7 @@ export const { ftrans, fTrans, ftranspose, fTranspose } = register(
 );
 
 // not sure there's a point to having this and the above, seems like a proto version of the above.
-export const tuning = register('tuning', function (ratios, pat) {
+const tuning = register('tuning', function (ratios, pat) {
   return pat.withHap((hap) => {
     const frequency = xenOffset(ratios, parseNumeral(hap.value));
     return hap.withValue(() => frequency);
