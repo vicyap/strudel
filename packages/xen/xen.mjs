@@ -59,6 +59,8 @@ function xenOffset(xenScale, offset, index = 0) {
   return xenScale[i] * Math.pow(2, oct);
 }
 
+const trimFreq = freq => parseFloat(freq.toPrecision(10));
+
 // accepts a scale name such as 31edo, and a pattern
 // pattern expected to follow format such that a value can be mapped
 // to an edostep within the scale. Returns the pattern with
@@ -75,7 +77,7 @@ function xenOffset(xenScale, offset, index = 0) {
  * @tags tonal
  * @example
  * // A minor triad in 31edo:
- * "0 8 18".xen("31edo").freq().piano()
+ * "0 8 18".xen("31edo").piano()
  * @example
  * // You can also use xen with frequency ratios.
  * // This is equivalent to the above:
@@ -83,11 +85,11 @@ function xenOffset(xenScale, offset, index = 0) {
  *   Math.pow(2, 0/31),
  *   Math.pow(2, 8/31),
  *   Math.pow(2, 18/31),
- * ]).freq().piano()
+ * ]).piano()
  * @example
  * // xen also supports all scale names that
  * // tune does:
- * "0 1 2 3 4 5".xen("hexany15").freq()
+ * "0 1 2 3 4 5".xen("hexany15")
  * // equiv to:
  * // "0 1 2 3 4 5".tune("hexany15").mul("220").freq()
  */
@@ -104,10 +106,10 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
       hVal = isObject ? hVal : { n: hVal };
       const { n, value, ...otherValues } = hVal;
       const scale = getXenScale(scaleNameOrRatios);
-      let frequency = xenOffset(scale, parseNumeral(hVal.n));
+      let freq = xenOffset(scale, parseNumeral(hVal.n));
       // 10 is somewhat arbitrary
-      frequency = parseFloat(frequency.toPrecision(10));
-      hap.value = isObject ? { ...otherValues, freq: frequency } : frequency;
+      freq = trimFreq(freq);
+      hap.value = isObject ? { ...otherValues, freq } : { freq };
       return isEdo(scaleNameOrRatios)
         ? hap.setContext({ ...hap.context, edoSize: scaleNameOrRatios.match(/^([1-9]+[0-9]*)edo$/)[1] })
         : hap;
@@ -128,6 +130,18 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
  * @param {number} amt
  * @param {number} edoSize (optional)
  * @returns {Pattern}
+ *
+ * @example
+ * "0 1 2".xen("12edo").ftrans("7")
+ * // n("0 1 2").scale("A:chromatic").trans("7")
+ * @example
+ * "0 8 18".xen("31edo").ftrans("<8 -8>")
+ * @example
+ * // if you specify the edoSize, it changes the amount of transposition:
+ * "0 8 18".xen("31edo").ftrans("8:12")
+ * @example
+ * // it can also work with frequency values directly
+ * "200 300 400".ftrans("<0 7:31 7>").freq()
  */
 
 /* f = frequency (Hz)
@@ -159,6 +173,7 @@ export const { ftrans, fTrans, ftranspose, fTranspose } = register(
           edoSize = 12;
         }
         freq = freq * Math.pow(2, numSteps / edoSize);
+        freq = trimFreq(freq);
         hap.value = isObject ? { ...otherValues, freq } : freq;
         return hap.setContext({ ...hap.context, edoSize });
       });
