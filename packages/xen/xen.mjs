@@ -119,9 +119,9 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
 /**
  * Frequency transpose. Assumes pattern either has `freq` set, or has values that can be interpreted as frequencies
  * amt has optional `edoSize` param, defaults to 12.
- * If haps have edoSize param set, such as from the output of `xen("edo31")`, 
- * `ftrans` will fallback to that instead of 12 as the default. 
- * 
+ * If haps have edoSize param set, such as from the output of `xen("edo31")`,
+ * `ftrans` will fallback to that instead of 12 as the default.
+ *
  * Transposes the frequency by `amt` edoSteps
  * @name ftranspose
  * @synonyms ftrans, fTrans ftranspose, fTranspose
