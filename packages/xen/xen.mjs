@@ -92,6 +92,8 @@ const trimFreq = freq => parseFloat(freq.toPrecision(10));
  * "0 1 2 3 4 5".xen("hexany15")
  * // equiv to:
  * // "0 1 2 3 4 5".tune("hexany15").mul("220").freq()
+ * @example
+ * n("0 1 2 3 4 5 6 7").xen("<5edo 10edo 15edo hexany15>")
  */
 
 // TODO feat: change root frequency
