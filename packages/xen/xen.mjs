@@ -123,10 +123,11 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
 /**
  * Assumes pattern of frequencies tuned to some `base` frequency, such as the output of `xen`
  * Because `xen` defaults to `220Hz`, so will `withBase`.
- * but you can specify a different original base with the standard optional array syntax `:`
+ * but you can specify a different original base with the standard optional array syntax '`:`'
  * @name withBase
  * @param {number} base
  * @param {number} (optional) originalBase
+ * @tags tonal
  *
  * @example
  * "[0 1 2 3] [3 4] [4 3 2 1]".xen("hexany23").withBase("<220 [300 200]>")
@@ -167,6 +168,7 @@ export const withBase = register('withBase', (b, pat) => {
  * Transposes the frequency by `amt` edoSteps
  * @name ftranspose
  * @synonyms ftrans, fTrans, ftranspose, fTranspose
+ * @tags tonal
  * @param {number} amt
  * @param {number} edoSize (optional)
  * @returns {Pattern}
