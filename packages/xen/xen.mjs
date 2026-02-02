@@ -22,7 +22,7 @@ const presets = {
 
 // Given a base frequency such as 220 and an edo scale, returns
 // an array of frequencies representing the given edo scale in that base
-function withBase(freq, scale) {
+function _withBase(freq, scale) {
   return scale.map((r) => r * freq);
 }
 
@@ -46,7 +46,7 @@ function getXenScale(scale, indices) {
       throw new Error('unknown scale name: "' + scale + '"');
     }
   }
-  scale = withBase(defaultBase, scale);
+  scale = _withBase(defaultBase, scale);
   if (!indices) {
     return scale;
   }
@@ -115,6 +115,44 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
       return isEdo(scaleNameOrRatios)
         ? hap.setContext({ ...hap.context, edoSize: scaleNameOrRatios.match(/^([1-9]+[0-9]*)edo$/)[1] })
         : hap;
+    });
+    return removeUndefineds(haps);
+  });
+});
+
+/**
+ * Assumes pattern of frequencies tuned to some `base` frequency, such as the output of `xen`
+ * Because `xen` defaults to `220Hz`, so will `withBase`.
+ * but you can specify a different original base with the standard optional array syntax `:`
+ * @name withBase
+ * @param {number} base
+ * @param {number} (optional) originalBase
+ * 
+ * @example
+ * "[0 1 2 3] [3 4] [4 3 2 1]".xen("hexany23").withBase("<220 [300 200]>")
+ * @example 
+ * mini([1 / 1, 16 / 15, 9 / 8, 6 / 5, 5 / 4].join(' ')).withBase("220:1")
+ * // mini([1 / 1, 16 / 15, 9 / 8, 6 / 5, 5 / 4].join(' ')).mul(220).freq()
+ * 
+ * @returns Pattern
+ */
+export const withBase = register('withBase', (b, pat) => {
+  let base;
+  let originalBase = 220;
+  if (Array.isArray(b)) {
+    base = b[0];
+    originalBase = b[1];
+  } else {
+    base = b;
+  }
+  return pat.withHaps((haps) => {
+    haps = haps.map((hap) => {
+      let hVal = hap.value;
+      const isObject = typeof hVal === 'object';
+      let freq = isObject ? hVal.freq : hVal;
+      freq = (freq * base) / originalBase;
+      hap.value = isObject ? { ...hap.value, freq } : { freq };
+      return hap;
     });
     return removeUndefineds(haps);
   });
