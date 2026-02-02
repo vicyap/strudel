@@ -127,13 +127,13 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
  * @name withBase
  * @param {number} base
  * @param {number} (optional) originalBase
- * 
+ *
  * @example
  * "[0 1 2 3] [3 4] [4 3 2 1]".xen("hexany23").withBase("<220 [300 200]>")
- * @example 
+ * @example
  * mini([1 / 1, 16 / 15, 9 / 8, 6 / 5, 5 / 4].join(' ')).withBase("220:1")
  * // mini([1 / 1, 16 / 15, 9 / 8, 6 / 5, 5 / 4].join(' ')).mul(220).freq()
- * 
+ *
  * @returns Pattern
  */
 export const withBase = register('withBase', (b, pat) => {
