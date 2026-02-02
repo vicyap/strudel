@@ -139,8 +139,8 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
  * @example
  * "0 8 18".xen("31edo").ftrans("<8 -8>")
  * @example
- * // if you specify the edoSize, it changes the amount of transposition:
- * "0 8 18".xen("31edo").ftrans("8:12")
+ * // to transpose by steps of an edo, use "step:edo" :
+ * "0 7 8 18".xen("31edo").ftrans("<0 1:31 1:12>")
  * @example
  * // it can also work with frequency values directly
  * "200 300 400".ftrans("<0 7:31 7>").freq()
