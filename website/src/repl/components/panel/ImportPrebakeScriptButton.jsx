@@ -35,7 +35,6 @@ export function ImportPrebakeScriptButton({ updateEditor }) {
 
   return (
     <SpecialActionInput
-      Icon={DocumentArrowDownIcon}
       type="file"
       label="import"
       accept=".strudel,.js"

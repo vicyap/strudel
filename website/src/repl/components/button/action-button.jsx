@@ -33,23 +33,15 @@ export function IconButton(props) {
   );
 }
 
-export function ActionInput({ Icon, label, className, ...props }) {
+export function ActionInput({ label, className, ...props }) {
   return (
     <label className={cx('space-x-1 inline-flex items-center cursor-pointer ', className)}>
       <input {...props} className="sr-only peer" />
-      <Icon className="w-5 h-5 peer-hover:opacity-50" />
-      <span className="inline-flex items-center peer-hover:opacity-50">{label}</span>
+      <span className="inline-flex items-center peer-hover:opacity-50 text-xs">{label}</span>
     </label>
   );
 }
 
-export function SpecialActionInput({ Icon, className, ...props }) {
-  return (
-    <ActionInput
-      {...props}
-      Icon={Icon}
-      className={className}
-      label={<span className="max-w-[300px]">{props.label}</span>}
-    />
-  );
+export function SpecialActionInput({ className, ...props }) {
+  return <ActionInput {...props} className={className} label={<span className="max-w-[300px]">{props.label}</span>} />;
 }

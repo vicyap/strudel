@@ -6,7 +6,7 @@ import { AudioDeviceSelector } from './AudioDeviceSelector.jsx';
 import { AudioEngineTargetSelector } from './AudioEngineTargetSelector.jsx';
 import { confirmDialog } from '../../util.mjs';
 import { DEFAULT_MAX_POLYPHONY, setMaxPolyphony, setMultiChannelOrbits } from '@strudel/webaudio';
-import { IconButton, SpecialActionButton } from '../button/action-button.jsx';
+import { ActionButton, IconButton, SpecialActionButton } from '../button/action-button.jsx';
 import { exportScript, ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
 import { useCallback, useEffect, useRef } from 'react';
 import { Code } from '../Code.jsx';
@@ -395,29 +395,25 @@ function PrebakeSettingsContent() {
   }, []);
   return (
     <div className="text-foreground w-full overflow-auto" style={{ fontFamily }}>
-      <div className="px-4 py-1 flex flex-row items-center space-x-4 justify-between">
-        <IconButton
-          Icon={DocumentCheckIcon}
+      <div className="px-4 py-2 flex flex-row items-center space-x-3">
+        <ActionButton
           onClick={async () => {
             await editorRef.current?.savePrebake();
           }}
         >
           save
-        </IconButton>
-        <div className="flex flex-row space-x-2">
-          <ImportPrebakeScriptButton updateEditor={handleSetCode} />
-          <IconButton
-            Icon={DocumentArrowUpIcon}
-            onClick={async () => {
-              console.log('Exporting');
-              await exportScript(prebakeScript);
-            }}
-          >
-            export
-          </IconButton>
-        </div>
+        </ActionButton>
+        <ImportPrebakeScriptButton updateEditor={handleSetCode} />
+        <ActionButton
+          onClick={async () => {
+            console.log('Exporting');
+            await exportScript(prebakeScript);
+          }}
+        >
+          export
+        </ActionButton>
         <Checkbox
-          label="Include prebake script in share"
+          label="include prebake script in share"
           onChange={(cbEvent) => settingsMap.setKey('includePrebakeScriptInShare', cbEvent.target.checked)}
           value={includePrebakeScriptInShare}
         />
