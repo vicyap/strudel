@@ -77,11 +77,11 @@ const trimFreq = (freq) => parseFloat(freq.toPrecision(10));
  * @tags tonal
  * @example
  * // A minor triad in 31edo:
- * "0 8 18".xen("31edo").piano()
+ * i("0 8 18").xen("31edo").piano()
  * @example
  * // You can also use xen with frequency ratios.
  * // This is equivalent to the above:
- * "0 1 2".xen([
+ * i("0 1 2").xen([
  *   Math.pow(2, 0/31),
  *   Math.pow(2, 8/31),
  *   Math.pow(2, 18/31),
@@ -89,29 +89,27 @@ const trimFreq = (freq) => parseFloat(freq.toPrecision(10));
  * @example
  * // xen also supports all scale names that
  * // tune does:
- * "0 1 2 3 4 5".xen("hexany15")
+ * i("0 1 2 3 4 5").xen("hexany15")
  * // equiv to:
  * // "0 1 2 3 4 5".tune("hexany15").mul("220").freq()
  * @example
- * n("0 1 2 3 4 5 6 7").xen("<5edo 10edo 15edo hexany15>")
+ * i("0 1 2 3 4 5 6 7").xen("<5edo 10edo 15edo hexany15>")
  */
 
-// TODO feat: change root frequency
-// TODO add explanation for what "31edo" etc. are
-// TODO (maybe): should this return freq ratios like tune does, for parity's sake?
 export const xen = register('xen', function (scaleNameOrRatios, pat) {
   return pat.withHaps((haps) => {
     haps = haps.map((hap) => {
       let hVal = hap.value;
       const isObject = typeof hVal === 'object';
-      // If hVal is a pure value, place it on `n` so that we interpret it as an edoStep
-      hVal = isObject ? hVal : { n: hVal };
-      const { n, value, ...otherValues } = hVal;
+      if (!isObject) {
+        throw new Error(`Expected hap to have control 'i' set, but received ${hap.value.i}, try wrapping input in i()`)
+      }
+      const { i, ...otherValues } = hVal;
       const scale = getXenScale(scaleNameOrRatios);
-      let freq = xenOffset(scale, parseNumeral(hVal.n));
+      let freq = xenOffset(scale, parseNumeral(hVal.i));
       // 10 is somewhat arbitrary
       freq = trimFreq(freq);
-      hap.value = isObject ? { ...otherValues, freq } : { freq };
+      hap.value = { ...otherValues, freq };
       return isEdo(scaleNameOrRatios)
         ? hap.setContext({ ...hap.context, edoSize: scaleNameOrRatios.match(/^([1-9]+[0-9]*)edo$/)[1] })
         : hap;
@@ -130,7 +128,7 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
  * @tags tonal
  *
  * @example
- * "[0 1 2 3] [3 4] [4 3 2 1]".xen("hexany23").withBase("<220 [300 200]>")
+ * i("[0 1 2 3] [3 4] [4 3 2 1]").xen("hexany23").withBase("<220 [300 200]>")
  * @example
  * mini([1 / 1, 16 / 15, 9 / 8, 6 / 5, 5 / 4].join(' ')).withBase("220:1")
  * // mini([1 / 1, 16 / 15, 9 / 8, 6 / 5, 5 / 4].join(' ')).mul(220).freq()
@@ -174,16 +172,16 @@ export const withBase = register('withBase', (b, pat) => {
  * @returns {Pattern}
  *
  * @example
- * "0 1 2".xen("12edo").ftrans("7")
+ * i("0 1 2").xen("12edo").ftrans("7")
  * // n("0 1 2").scale("A:chromatic").trans("7")
  * @example
- * "0 8 18".xen("31edo").ftrans("<8 -8>")
+ * i("0 8 18").xen("31edo").ftrans("<8 -8>")
  * @example
  * // to transpose by steps of an edo, use "step:edo" :
- * "0 7 8 18".xen("31edo").ftrans("<0 1:31 1:12>")
+ * i("0 7 8 18").xen("31edo").ftrans("<0 1:31 1:12>")
  * @example
  * // it can also work with frequency values directly
- * "200 300 400".ftrans("<0 7:31 7>").freq()
+ * freq("200 300 400").ftrans("<0 7:31 7>")
  */
 
 /* f = frequency (Hz)
@@ -208,7 +206,7 @@ export const { ftrans, fTrans, ftranspose, fTranspose } = register(
         let hVal = hap.value;
         const isObject = typeof hVal === 'object';
         hVal = isObject ? hVal : { freq: hVal };
-        let { freq, value, ...otherValues } = hVal;
+        let { freq, ...otherValues } = hVal;
         if (edoSize == undefined && hap.context.edoSize != undefined) {
           edoSize = hap.context.edoSize;
         } else if (edoSize == undefined) {

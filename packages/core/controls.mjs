@@ -394,6 +394,18 @@ export const { source, src } = registerControl('source', 'src');
  */
 // also see https://codeberg.org/uzu/strudel/pulls/63
 export const { n } = registerControl('n');
+
+/**
+ * Selects the given degree. Currently used in `xen` and `tune`:
+ *
+ * @name i
+ * @tags tonal
+ * @param {number | Pattern} value
+ * @example
+ * i("0 1 2 3 4 5 6 7").xen("<5edo 10edo 15edo hexany15>")
+ */
+export const { i } = registerControl('i');
+
 /**
  * Plays the given note name or midi number. A note name consists of
  *
