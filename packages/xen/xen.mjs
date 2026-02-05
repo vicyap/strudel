@@ -102,7 +102,7 @@ export const xen = register('xen', function (scaleNameOrRatios, pat) {
       let hVal = hap.value;
       const isObject = typeof hVal === 'object';
       if (!isObject) {
-        throw new Error(`Expected hap to have control 'i' set, but received ${hap.value.i}, try wrapping input in i()`)
+        throw new Error(`Expected hap to have control 'i' set, but received ${hap.value.i}, try wrapping input in i()`);
       }
       const { i, ...otherValues } = hVal;
       const scale = getXenScale(scaleNameOrRatios);

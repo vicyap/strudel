@@ -32,7 +32,7 @@ import { register } from '@strudel/core';
  *   469.00678383895,
  *   523.2511306012
  * ]).mul(220).freq();
- * 
+ *
  * @tags tonal
  */
 
@@ -47,7 +47,7 @@ export const tune = register('tune', (scale, pat) => {
   tune.tonicize(1);
   return pat.withHap((hap) => {
     if (typeof hap.value !== 'object') {
-        throw new Error(`Expected hap to have control 'i' set, but received ${hap.value.i}, try wrapping input in i()`)
+      throw new Error(`Expected hap to have control 'i' set, but received ${hap.value.i}, try wrapping input in i()`);
     }
     // const { i, ...otherValues } = hap.value;
     // hap.value = { ...otherValues, freq: tune.note(i)}
