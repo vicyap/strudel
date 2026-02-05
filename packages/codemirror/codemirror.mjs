@@ -504,8 +504,13 @@ export class PrebakeCodeMirror {
         Prec.highest(
           keymap.of([
             {
-              key: 'Ctrl-Enter',
               mac: 'Meta-Enter',
+              run: () => {
+                this.savePrebake();
+              },
+            },
+            {
+              key: 'Ctrl-Enter',
               run: () => {
                 this.savePrebake();
               },
