@@ -1,16 +1,16 @@
 import { defaultSettings, settingsMap, useSettings, storePrebakeScript, setSettingsTab } from '../../../settings.mjs';
-import { themes, codemirrorSettings, PrebakeCodeMirror } from '@strudel/codemirror';
+import { themes, codemirrorSettings } from '@strudel/codemirror';
+import { PrebakeCodeMirror } from '../../../repl/prebakeCodeMirror.mjs';
 import { confirmAndReloadPage, isUdels } from '../../util.mjs';
 import { ButtonGroup } from './Forms.jsx';
 import { AudioDeviceSelector } from './AudioDeviceSelector.jsx';
 import { AudioEngineTargetSelector } from './AudioEngineTargetSelector.jsx';
 import { confirmDialog } from '../../util.mjs';
 import { DEFAULT_MAX_POLYPHONY, setMaxPolyphony, setMultiChannelOrbits } from '@strudel/webaudio';
-import { ActionButton, IconButton, SpecialActionButton } from '../button/action-button.jsx';
+import { ActionButton, SpecialActionButton } from '../button/action-button.jsx';
 import { exportScript, ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
 import { useCallback, useEffect, useRef } from 'react';
 import { Code } from '../Code.jsx';
-import { DocumentArrowUpIcon, DocumentCheckIcon } from '@heroicons/react/16/solid';
 
 function cx(...classes) {
   // : Array<string | undefined>
