@@ -121,8 +121,8 @@ export class MidiInput {
     const scaled = v / 127;
 
     this._refs[ccNum] = scaled;
-    this._refsByChan[ccNum] ??= {};
-    this._refsByChan[ccNum][chan] = scaled;
+    this._refsByChan[chan] ??= {};
+    this._refsByChan[chan][ccNum] = scaled;
 
     this._saveState(undefined, ccNum, scaled);
     this._saveState(chan, ccNum, scaled);
