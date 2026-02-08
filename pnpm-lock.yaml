@@ -4,6 +4,30 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    '@codemirror/autocomplete':
+      specifier: ^6.18.4
+      version: 6.18.4
+    '@codemirror/commands':
+      specifier: ^6.8.0
+      version: 6.8.0
+    '@codemirror/lang-javascript':
+      specifier: ^6.2.2
+      version: 6.2.2
+    '@codemirror/language':
+      specifier: ^6.10.8
+      version: 6.10.8
+    '@codemirror/search':
+      specifier: ^6.5.8
+      version: 6.5.8
+    '@codemirror/state':
+      specifier: ^6.5.1
+      version: 6.5.1
+    '@codemirror/view':
+      specifier: ^6.36.2
+      version: 6.36.2
+
 importers:
 
   .:
@@ -171,25 +195,25 @@ importers:
   packages/codemirror:
     dependencies:
       '@codemirror/autocomplete':
-        specifier: ^6.18.4
+        specifier: 'catalog:'
         version: 6.18.4
       '@codemirror/commands':
-        specifier: ^6.8.0
+        specifier: 'catalog:'
         version: 6.8.0
       '@codemirror/lang-javascript':
-        specifier: ^6.2.2
+        specifier: 'catalog:'
         version: 6.2.2
       '@codemirror/language':
-        specifier: ^6.10.8
+        specifier: 'catalog:'
         version: 6.10.8
       '@codemirror/search':
-        specifier: ^6.5.8
+        specifier: 'catalog:'
         version: 6.5.8
       '@codemirror/state':
-        specifier: ^6.5.1
+        specifier: 'catalog:'
         version: 6.5.1
       '@codemirror/view':
-        specifier: ^6.36.2
+        specifier: 'catalog:'
         version: 6.36.2
       '@lezer/highlight':
         specifier: ^1.2.1
@@ -705,6 +729,21 @@ importers:
       '@astrojs/tailwind':
         specifier: ^5.1.5
         version: 5.1.5(astro@5.1.9(@types/node@22.10.10)(jiti@2.4.2)(lightningcss@1.29.1)(rollup@2.79.2)(terser@5.37.0)(typescript@5.7.3)(yaml@2.7.0))(tailwindcss@3.4.17)
+      '@codemirror/commands':
+        specifier: 'catalog:'
+        version: 6.8.0
+      '@codemirror/lang-javascript':
+        specifier: 'catalog:'
+        version: 6.2.2
+      '@codemirror/language':
+        specifier: 'catalog:'
+        version: 6.10.8
+      '@codemirror/state':
+        specifier: 'catalog:'
+        version: 6.5.1
+      '@codemirror/view':
+        specifier: 'catalog:'
+        version: 6.36.2
       '@docsearch/css':
         specifier: ^3.8.3
         version: 3.8.3
