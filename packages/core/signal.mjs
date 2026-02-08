@@ -389,7 +389,9 @@ export const randL = (n) => {
 export const randrun = (n) => {
   return signal((t, controls) => {
     // Without adding 0.5, the first cycle is always 0,1,2,3,...
-    const rands = getRandsAtTime(t.floor().add(0.5), n, controls.randSeed);
+    let rands = getRandsAtTime(t.floor().add(0.5), n, controls.randSeed);
+    // Support n = 1
+    if (!Array.isArray(rands)) rands = [rands];
     const nums = rands
       .map((n, i) => [n, i])
       .sort((a, b) => (a[0] > b[0]) - (a[0] < b[0]))
