@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.event.label.name == 'serve-hot'
+    if: ${{ github.event.label.name == 'serve-hot' }}
     runs-on: docker
     env:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
