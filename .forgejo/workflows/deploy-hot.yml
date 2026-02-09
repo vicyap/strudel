@@ -11,7 +11,7 @@ concurrency:
 
 jobs:
   build:
-    if: forgejo.event.label.name == 'serve-hot'
+    if: github.event.label.name == 'serve-hot'
     runs-on: docker
     env:
       SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -39,4 +39,4 @@ jobs:
           ssh-keyscan matrix.toplap.org > ~/.ssh/known_hosts
           rsync -atv --delete --delete-after --progress \
             ./website/dist/ \
-            strudel@matrix.toplap.org:/home/strudel.cc/deploy/pr-${{ forgejo.event.pull_request.number }}.strudel.cc
+            strudel@matrix.toplap.org:/home/strudel.cc/deploy/pr-${{ github.event.pull_request.number }}.strudel.cc
