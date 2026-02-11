@@ -1894,19 +1894,6 @@ export const { delay } = registerControl(['delay', 'delaytime', 'delayfeedback']
 export const { delayfeedback, delayfb, dfb } = registerControl('delayfeedback', 'delayfb', 'dfb');
 
 /**
- * Sets the level of the signal that is fed back into the delay.
- * Caution: Values >= 1 will result in a signal that gets louder and louder! Don't do it
- *
- * @name delayfeedback
- * @tags orbit, superdough, supradough
- * @param {number | Pattern} feedback between 0 and 1
- * @synonyms delayfb, dfb
- * @example
- * s("bd").delay(.25).delayfeedback("<.25 .5 .75 1>")
- *
- */
-export const { delayspeed } = registerControl('delayspeed');
-/**
  * Sets the time of the delay effect.
  *
  * @name delayspeed
@@ -1916,6 +1903,16 @@ export const { delayspeed } = registerControl('delayspeed');
  * @example
  * note("d d a# a".fast(2)).s("sawtooth").delay(.8).delaytime(1/2).delayspeed("<2 .5 -1 -2>")
  *
+ */
+export const { delayspeed } = registerControl('delayspeed');
+
+/*
+ * @name delaytime
+ * @tags orbit, superdough, supradough
+ * @param {number | Pattern} delaytime sets the time of the delay effect.
+ * @synonyms delayt, dt
+ * @example
+ * note("d d a# a".fast(2)).s("sawtooth").delay(.8).delaytime(1/2).delayspeed("<2 .5 -1 -2>")
  */
 export const { delaytime, delayt, dt } = registerControl('delaytime', 'delayt', 'dt');
 
