@@ -108,6 +108,7 @@ export function confirmDialog(msg) {
   });
 }
 export const SETTING_CHANGE_RELOAD_MSG = 'Changing this setting requires the window to reload itself. OK?';
+
 export function confirmAndReloadPage(onSuccess) {
   confirmDialog(SETTING_CHANGE_RELOAD_MSG).then((r) => {
     if (r == true) {

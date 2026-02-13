@@ -6,7 +6,7 @@ This program is free software: you can redistribute it and/or modify it under th
 
 import { code2hash, getPerformanceTimeSeconds, logger, silence } from '@strudel/core';
 import { getDrawContext } from '@strudel/draw';
-import { evaluate, transpiler } from '@strudel/transpiler';
+import { transpiler, evaluate } from '@strudel/transpiler';
 import {
   getAudioContextCurrentTime,
   renderPatternAudio,
@@ -87,12 +87,12 @@ export function useReplContext() {
       pattern: silence,
       drawTime,
       drawContext,
-      prebake: async () =>
-        Promise.all([modulesLoading, presets]).then(() => {
-          if (prebakeScript?.length) {
-            return evaluate(prebakeScript ?? '');
-          }
-        }),
+      prebake: async () => {
+        await Promise.all([modulesLoading, presets]);
+        if (prebakeScript) {
+          return evaluate(prebakeScript, { addReturn: false });
+        }
+      },
       onUpdateState: (state) => {
         setReplState({ ...state });
       },

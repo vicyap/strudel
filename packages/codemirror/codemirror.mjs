@@ -293,6 +293,9 @@ export class StrudelMirror {
     // Handle global evaluation requests (e.g., from Vim :w)
     this.onEvaluateRequest = (e) => {
       try {
+        if (e.detail.view !== this.editor) {
+          return; // ignore events from other editors
+        }
         // Evaluate current editor on repl-evaluate
         logger('[repl] evaluate via event');
         this.evaluate();
@@ -307,6 +310,9 @@ export class StrudelMirror {
     // Toggle comments requested from Vim (gc)
     this.onToggleComment = (e) => {
       try {
+        if (e.detail.view !== this.editor) {
+          return; // ignore events from other editors
+        }
         // Honor selections; toggleLineComment handles both selections and
         // single line
         toggleLineComment(this.editor);
@@ -347,6 +353,9 @@ export class StrudelMirror {
   // Listen for global stop requests (e.g., from Vim :q)
   onStopRequest = (e) => {
     try {
+      if (e.detail.view !== this.editor) {
+        return; // ignore events from other editors
+      }
       this.stop();
       e?.cancelable && e.preventDefault?.();
     } catch (err) {

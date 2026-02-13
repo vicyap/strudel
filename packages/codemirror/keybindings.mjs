@@ -96,7 +96,7 @@ try {
     // internal actions and works with current selections/visual mode.
     try {
       Vim.defineAction('strudelToggleComment', (cm) => {
-        const view = cm?.view || cm;
+        const view = cm.cm6;
         try {
           const ev = new CustomEvent('repl-toggle-comment', { detail: { source: 'vim', view }, cancelable: true });
           document.dispatchEvent(ev);
@@ -112,15 +112,16 @@ try {
 
     // :q to pause/stop
     Vim.defineEx('quit', 'q', (cm) => {
-      const view = cm?.view || cm;
+      const view = cm.cm6;
+      logger('[vim] :q — stopping repl');
       replStop(view);
     });
 
     // :w to evaluate
     Vim.defineEx('write', 'w', (cm) => {
-      const view = cm?.view || cm; // CM6 Vim passes either an object with view or the view itself
+      const view = cm.cm6;
       try {
-        view?.focus?.();
+        view.focus?.();
         // Let the app know this came from Vim :w
         try {
           logger('[vim] :w — evaluating code');
