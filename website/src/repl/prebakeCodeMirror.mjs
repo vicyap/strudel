@@ -5,6 +5,7 @@ import { Compartment, EditorState, Prec } from '@codemirror/state';
 import { drawSelection, EditorView, keymap } from '@codemirror/view';
 import { logger } from '@strudel/core';
 import { basicSetup, flash, initTheme, extensions, parseBooleans, codemirrorSettings } from '@strudel/codemirror';
+import { evaluate } from '@strudel/transpiler';
 
 export class PrebakeCodeMirror {
   constructor(initialCode, storePrebake, container) {
@@ -89,6 +90,7 @@ export class PrebakeCodeMirror {
   async savePrebake() {
     flash(this.view);
     this.storePrebake(this.code);
+    evaluate(this.code, { addReturn: false }); // run prebake
     logger('[prebake] prebake saved');
   }
 

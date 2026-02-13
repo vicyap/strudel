@@ -4,9 +4,9 @@ Copyright (C) 2022 Strudel contributors - see <https://codeberg.org/uzu/strudel/
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details. You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { code2hash, getPerformanceTimeSeconds, logger, silence, evaluate } from '@strudel/core';
+import { code2hash, getPerformanceTimeSeconds, logger, silence } from '@strudel/core';
 import { getDrawContext } from '@strudel/draw';
-import { transpiler } from '@strudel/transpiler';
+import { transpiler, evaluate } from '@strudel/transpiler';
 import {
   getAudioContextCurrentTime,
   renderPatternAudio,
@@ -42,8 +42,6 @@ import { debugAudiograph } from './audiograph';
 
 const { latestCode, maxPolyphony, audioDeviceName, multiChannelOrbits } = settingsMap.get();
 let modulesLoading, presets, drawContext, clearCanvas, audioReady;
-
-const evaluateUserPrebake = (code) => evaluate(code, transpiler, { addReturn: false });
 
 if (typeof window !== 'undefined') {
   audioReady = initAudioOnFirstClick({
@@ -88,12 +86,12 @@ export function useReplContext() {
       pattern: silence,
       drawTime,
       drawContext,
-      prebake: async () =>
-        Promise.all([modulesLoading, presets]).then(() => {
-          if (prebakeScript?.length) {
-            return evaluateUserPrebake(prebakeScript ?? '');
-          }
-        }),
+      prebake: async () => {
+        await Promise.all([modulesLoading, presets]);
+        if (prebakeScript) {
+          return evaluate(prebakeScript, { addReturn: false });
+        }
+      },
       onUpdateState: (state) => {
         setReplState({ ...state });
       },
@@ -182,14 +180,6 @@ export function useReplContext() {
     });
     editorRef.current?.updateSettings(editorSettings);
   }, [_settings]);
-
-  useEffect(() => {
-    Promise.all([modulesLoading, presets]).then(() => {
-      if (prebakeScript?.length) {
-        return evaluateUserPrebake(prebakeScript ?? '');
-      }
-    });
-  }, [prebakeScript]);
 
   //
   // UI Actions
