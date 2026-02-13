@@ -112,7 +112,8 @@ try {
 
     // :q to pause/stop
     Vim.defineEx('quit', 'q', (cm) => {
-      const view = cm?.view || cm;
+      const view = cm.cm6;
+      logger('[vim] :q — stopping repl');
       replStop(view);
     });
 
