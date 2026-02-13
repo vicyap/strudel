@@ -4,10 +4,11 @@ import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { Compartment, EditorState, Prec } from '@codemirror/state';
 import { drawSelection, EditorView, keymap } from '@codemirror/view';
 import { logger } from '@strudel/core';
-import { basicSetup, flash, initTheme, extensions, parseBooleans } from '@strudel/codemirror';
+import { basicSetup, flash, initTheme, extensions, parseBooleans, codemirrorSettings } from '@strudel/codemirror';
 
 export class PrebakeCodeMirror {
-  constructor(initialCode, storePrebake, containerRef, editorRef, settings) {
+  constructor(initialCode, storePrebake, container) {
+    const settings = codemirrorSettings.get();
     this.storePrebake = storePrebake;
     const compartments = Object.fromEntries(Object.keys(extensions).map((key) => [key, new Compartment()]));
     const initialSettings = Object.keys(compartments).map((key) =>
@@ -55,12 +56,34 @@ export class PrebakeCodeMirror {
         ),
       ],
     });
-    editorRef.current = state;
+
     this.code = initialCode;
     this.view = new EditorView({
       state,
-      parent: containerRef.current,
+      parent: container,
     });
+
+    const handleSaveEvent = async (e) => {
+      if (e.detail.view !== this.view) {
+        return; // ignore events from other editors
+      }
+      await this.savePrebake();
+      e?.cancelable && e.preventDefault?.();
+    };
+    const handleToggleComment = (e) => {
+      if (e.detail.view !== this.view) {
+        return; // ignore events from other editors
+      }
+      this.toggleComment();
+      e?.cancelable && e.preventDefault?.();
+    };
+
+    document.addEventListener('repl-evaluate', handleSaveEvent);
+    document.addEventListener('repl-toggle-comment', handleToggleComment);
+    this.cleanup = () => {
+      document.removeEventListener('prebake-evaluate', handleSaveEvent);
+      document.removeEventListener('prebake-toggle-comment', handleToggleComment);
+    };
   }
 
   async savePrebake() {

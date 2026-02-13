@@ -1,5 +1,5 @@
 import { defaultSettings, settingsMap, useSettings, storePrebakeScript, setSettingsTab } from '../../../settings.mjs';
-import { themes, codemirrorSettings } from '@strudel/codemirror';
+import { themes } from '@strudel/codemirror';
 import { PrebakeCodeMirror } from '../../../repl/prebakeCodeMirror.mjs';
 import { confirmAndReloadPage, isUdels } from '../../util.mjs';
 import { ButtonGroup } from './Forms.jsx';
@@ -9,8 +9,7 @@ import { confirmDialog } from '../../util.mjs';
 import { DEFAULT_MAX_POLYPHONY, setMaxPolyphony, setMultiChannelOrbits } from '@strudel/webaudio';
 import { ActionButton, SpecialActionButton } from '../button/action-button.jsx';
 import { exportScript, ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
-import { useCallback, useEffect, useRef } from 'react';
-import { Code } from '../Code.jsx';
+import { useEffect, useRef } from 'react';
 
 function cx(...classes) {
   // : Array<string | undefined>
@@ -360,46 +359,25 @@ function MainSettingsContent({ started }) {
 
 function PrebakeSettingsContent() {
   const { fontFamily, includePrebakeScriptInShare, prebakeScript } = useSettings();
-  const init = useCallback(() => {
-    const settings = codemirrorSettings.get();
-    // TODO: This instance need to be created at the top level to not create a new instance here
-    const prebakeCodemirror = new PrebakeCodeMirror(
-      prebakeScript,
-      (code) => storePrebakeScript(code),
-      containerRef,
-      editorRef,
-      settings,
-    );
-    editorRef.current = prebakeCodemirror;
-  }, []);
   const editorRef = useRef();
-  const containerRef = useRef();
-  const handleSaveEvent = async (e) => {
-    await editorRef.current?.savePrebake();
-    e?.cancelable && e.preventDefault?.();
-  };
-  const handleToggleComment = (e) => {
-    if (e.detail.view !== editorRef.current.view) {
-      return; // ignore events from other editors
-    }
-    editorRef.current?.toggleComment();
-    e?.cancelable && e.preventDefault?.();
-  };
-  const handleSetCode = (code) => {
-    editorRef.current?.setCode(code);
-  };
   useEffect(() => {
-    document.addEventListener('repl-evaluate', handleSaveEvent);
-    document.addEventListener('repl-toggle-comment', handleToggleComment);
     return () => {
-      document.removeEventListener('prebake-evaluate', handleSaveEvent);
-      document.removeEventListener('prebake-toggle-comment', handleToggleComment);
+      editorRef.current?.cleanup();
     };
-  }, []);
+  });
+
   return (
     <div className="flex flex-col h-full text-foreground w-full overflow-auto" style={{ fontFamily }}>
       <div className="flex flex-col grow overflow-hidden h-full bg-background">
-        <Code containerRef={containerRef} editorRef={editorRef} init={init} />
+        <section
+          className="pb-0 overflow-auto grow z-10 code-container"
+          ref={(el) => {
+            if (editorRef.current) {
+              return;
+            }
+            editorRef.current = new PrebakeCodeMirror(prebakeScript, (code) => storePrebakeScript(code), el);
+          }}
+        ></section>
       </div>
       <div className="flex justify-between items-center border-t border-muted px-4 whitespace-nowrap">
         <Checkbox
@@ -409,7 +387,7 @@ function PrebakeSettingsContent() {
           value={includePrebakeScriptInShare}
         />
         <div className="py-2 flex flex-row items-center space-x-3 ">
-          <ImportPrebakeScriptButton updateEditor={handleSetCode} />
+          <ImportPrebakeScriptButton updateEditor={(code) => editorRef.current?.editor.setCode(code)} />
           <ActionButton onClick={() => exportScript(prebakeScript)}>export</ActionButton>
           <ActionButton onClick={() => editorRef.current?.savePrebake()}>save</ActionButton>
         </div>
