@@ -1059,7 +1059,8 @@ const COMPOSERS = {
   /**
    * When called on a pattern `a`, with a input pattern `b` (`a.set(b)`),
    * combines `a` and `b` such that anything defined in `b`
-   * overwrites the corresponding value in `a`
+   * and anything defined in `a` that is *not* defined in `b`
+   * will be in the resulting pattern
    *
    * This is the inverse of `keep`
    *
@@ -1091,8 +1092,9 @@ const COMPOSERS = {
   set: [(a, b) => b],
   /**
    * When called on a pattern `a`, with a input pattern `b` (`a.keep(b)`),
-   * combines `a` and `b` such that anything defined in `a`
-   * overwrites the corresponding value in `b`
+   * combines `a` and `b` such that anything defined in `a`,
+   * and anything defined in `b` that is *not* defined in `a`
+   * will be in the resulting pattern
    *
    * This is the inverse of `set`
    *
