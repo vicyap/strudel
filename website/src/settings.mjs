@@ -29,7 +29,7 @@ const initialPrebakeScript = `// Prebake script
 // To use a script shared by some other user you can use
 // the import-button or paste the script in this editor.
 
-const bigRoom = register('bigRoom', (pat) => pat.room(8).roomsize(4))
+const ratchet = register('ratchet', (pat) => pat.sometimes(ply(2)))
 `;
 
 export const defaultSettings = {
