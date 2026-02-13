@@ -1,8 +1,6 @@
 import { errorLogger } from '@strudel/core';
-import { useSettings, storePrebakeScript } from '../../../settings.mjs';
-import { SpecialActionInput } from '../button/action-button';
+import { storePrebakeScript } from '../../../settings.mjs';
 import { confirmDialog, PREBAKE_CHANGE_MSG } from '@src/repl/util.mjs';
-import { DocumentArrowDownIcon } from '@heroicons/react/16/solid';
 
 async function importScript(script, updateEditor) {
   const reader = new FileReader();
@@ -31,25 +29,22 @@ export async function exportScript(script) {
 }
 
 export function ImportPrebakeScriptButton({ updateEditor }) {
-  const settings = useSettings();
-
+  const handleChange = async (e) => {
+    const file = e.target.files[0];
+    const confirmed = await confirmDialog(PREBAKE_CHANGE_MSG);
+    if (!confirmed) {
+      return;
+    }
+    try {
+      await importScript(file, updateEditor);
+    } catch (e) {
+      errorLogger(e);
+    }
+  };
   return (
-    <SpecialActionInput
-      type="file"
-      label="import"
-      accept=".strudel,.js"
-      onChange={async (e) => {
-        const file = e.target.files[0];
-        const confirmed = await confirmDialog(PREBAKE_CHANGE_MSG);
-        if (!confirmed) {
-          return;
-        }
-        try {
-          await importScript(file, updateEditor);
-        } catch (e) {
-          errorLogger(e);
-        }
-      }}
-    />
+    <label className="space-x-1 inline-flex items-center cursor-pointer">
+      <input type="file" accept=".strudel,.js" className="sr-only peer" onChange={handleChange} />
+      <span className="inline-flex items-center peer-hover:opacity-50 text-xs max-w-[300px]">import</span>
+    </label>
   );
 }

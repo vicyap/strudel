@@ -7,7 +7,7 @@ import { AudioDeviceSelector } from './AudioDeviceSelector.jsx';
 import { AudioEngineTargetSelector } from './AudioEngineTargetSelector.jsx';
 import { confirmDialog } from '../../util.mjs';
 import { DEFAULT_MAX_POLYPHONY, setMaxPolyphony, setMultiChannelOrbits } from '@strudel/webaudio';
-import { ActionButton, SpecialActionButton } from '../button/action-button.jsx';
+import { ActionButton } from '../button/action-button.jsx';
 import { exportScript, ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
 import { useEffect, useRef } from 'react';
 
@@ -340,7 +340,7 @@ function MainSettingsContent({ started }) {
       </FormItem>
       <FormItem label="Zen Mode">Try clicking the logo in the top left!</FormItem>
       <FormItem label="Reset Settings">
-        <SpecialActionButton
+        <ActionButton
           onClick={() => {
             confirmDialog('Sure?').then((r) => {
               if (r) {
@@ -349,9 +349,10 @@ function MainSettingsContent({ started }) {
               }
             });
           }}
+          className="bg-background p-2 max-w-[300px] hover:opacity-50"
         >
           restore default settings
-        </SpecialActionButton>
+        </ActionButton>
       </FormItem>
     </div>
   );
@@ -387,7 +388,7 @@ function PrebakeSettingsContent() {
           value={includePrebakeScriptInShare}
         />
         <div className="py-2 flex flex-row items-center space-x-3 ">
-          <ImportPrebakeScriptButton updateEditor={(code) => editorRef.current?.editor.setCode(code)} />
+          <ImportPrebakeScriptButton updateEditor={(code) => editorRef?.current.setCode(code)} />
           <ActionButton onClick={() => exportScript(prebakeScript)}>export</ActionButton>
           <ActionButton onClick={() => editorRef.current?.savePrebake()}>save</ActionButton>
         </div>
