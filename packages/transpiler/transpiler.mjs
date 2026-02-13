@@ -257,14 +257,7 @@ export function transpiler(input, options = {}) {
     body.push(silenceExpression);
   } else if (!body?.[body.length - 1]?.expression) {
     // Last statement is not an expression (e.g., VariableDeclaration, FunctionDeclaration)
-    if (blockBased) {
-      // For block-based eval, add silence as the return value when block ends with declaration
-      body.push(silenceExpression);
-    } else {
-      if (!prebake) {
-        throw new Error('unexpected ast format without body expression');
-      }
-    }
+    body.push(silenceExpression);
   }
 
   // For block-based eval, add scope assignments before the return statement
