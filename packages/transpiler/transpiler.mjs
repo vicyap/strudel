@@ -25,7 +25,6 @@ export function transpiler(input, options = {}) {
     emitMiniLocations = true,
     emitWidgets = true,
     blockBased = false,
-    prebake = false,
     range = [],
   } = options;
 
@@ -269,7 +268,7 @@ export function transpiler(input, options = {}) {
   }
 
   // add return to last statement
-  if (addReturn && !prebake) {
+  if (addReturn) {
     const { expression } = body[body.length - 1];
     body[body.length - 1] = {
       type: 'ReturnStatement',

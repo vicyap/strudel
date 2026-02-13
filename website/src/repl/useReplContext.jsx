@@ -43,7 +43,7 @@ import { debugAudiograph } from './audiograph';
 const { latestCode, maxPolyphony, audioDeviceName, multiChannelOrbits } = settingsMap.get();
 let modulesLoading, presets, drawContext, clearCanvas, audioReady;
 
-const evaluateUserPrebake = (code) => evaluate(code, transpiler, { prebake: true });
+const evaluateUserPrebake = (code) => evaluate(code, transpiler, { addReturn: false });
 
 if (typeof window !== 'undefined') {
   audioReady = initAudioOnFirstClick({
