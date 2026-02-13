@@ -10,11 +10,7 @@ import { DEFAULT_MAX_POLYPHONY, setMaxPolyphony, setMultiChannelOrbits } from '@
 import { ActionButton } from '../button/action-button.jsx';
 import { exportScript, ImportPrebakeScriptButton } from './ImportPrebakeScriptButton.jsx';
 import { useEffect, useRef } from 'react';
-
-function cx(...classes) {
-  // : Array<string | undefined>
-  return classes.filter(Boolean).join(' ');
-}
+import cx from '@src/cx.mjs';
 
 const inputClass =
   'bg-background text-xs h-8 max-h-8 border border-box rounded-0 text-foreground border-muted placeholder-muted focus:outline-none focus:ring-0 focus:border-foreground';
@@ -151,7 +147,6 @@ function MainSettingsContent({ started }) {
     isTabIndentationEnabled,
     isMultiCursorEnabled,
     patternAutoStart,
-    includePrebakeScriptInShare,
     isBlockBasedEvalEnabled,
   } = useSettings();
   const shouldAlwaysSync = isUdels();
