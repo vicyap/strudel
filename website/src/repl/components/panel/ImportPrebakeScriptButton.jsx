@@ -1,6 +1,6 @@
 import { errorLogger } from '@strudel/core';
 import { storePrebakeScript } from '../../../settings.mjs';
-import { confirmDialog, PREBAKE_CHANGE_MSG } from '@src/repl/util.mjs';
+import { confirmDialog } from '@src/repl/util.mjs';
 
 async function importScript(script, updateEditor) {
   const reader = new FileReader();
@@ -31,7 +31,7 @@ export async function exportScript(script) {
 export function ImportPrebakeScriptButton({ updateEditor }) {
   const handleChange = async (e) => {
     const file = e.target.files[0];
-    const confirmed = await confirmDialog(PREBAKE_CHANGE_MSG);
+    const confirmed = await confirmDialog('Warning: This will overwrite the current prebake.\nContinue?');
     if (!confirmed) {
       return;
     }
