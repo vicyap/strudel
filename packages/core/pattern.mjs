@@ -1061,10 +1061,12 @@ const COMPOSERS = {
    * combines `a` and `b` such that anything defined in `b`
    * overwrites the corresponding value in `a`
    *
+   * This is the inverse of `keep`
+   *
    * See examples below
    * @name set
    * @param {Pattern} pat
-   * @returns Pattern
+   * @returns {Pattern}
    * @memberof Pattern
    * @tags internal, combiners
    * @example
@@ -1087,6 +1089,25 @@ const COMPOSERS = {
    * })
    */
   set: [(a, b) => b],
+  /**
+   * When called on a pattern `a`, with a input pattern `b` (`a.keep(b)`),
+   * combines `a` and `b` such that anything defined in `a`
+   * overwrites the corresponding value in `b`
+   *
+   * This is the inverse of `set`
+   *
+   * See examples below
+   * @name keep
+   * @param {Pattern} pat
+   * @memberof Pattern
+   * @returns {Pattern}
+   * @tags internal, combiners
+   * @example
+   * // Struct, already defined in original pattern
+   * // Is combined with the input, such that we get
+   * // c c a a f f e e
+   * pure(0).struct("x!8").keep(note("c a f e"))
+   */
   keep: [(a) => a],
   keepif: [(a, b) => (b ? a : undefined)],
 
