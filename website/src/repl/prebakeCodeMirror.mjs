@@ -4,7 +4,7 @@ import { defaultHighlightStyle, syntaxHighlighting } from '@codemirror/language'
 import { Compartment, EditorState, Prec } from '@codemirror/state';
 import { drawSelection, EditorView, keymap } from '@codemirror/view';
 import { logger } from '@strudel/core';
-import { basicSetup, flash, prebakeField, initTheme, extensions, parseBooleans } from '@strudel/codemirror';
+import { basicSetup, flash, initTheme, extensions, parseBooleans } from '@strudel/codemirror';
 
 export class PrebakeCodeMirror {
   constructor(initialCode, storePrebake, containerRef, editorRef, settings) {
@@ -53,7 +53,6 @@ export class PrebakeCodeMirror {
             },
           ]),
         ),
-        prebakeField,
       ],
     });
     editorRef.current = state;

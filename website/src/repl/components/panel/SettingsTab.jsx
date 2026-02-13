@@ -379,6 +379,9 @@ function PrebakeSettingsContent() {
     e?.cancelable && e.preventDefault?.();
   };
   const handleToggleComment = (e) => {
+    if (e.detail.view !== editorRef.current.view) {
+      return; // ignore events from other editors
+    }
     editorRef.current?.toggleComment();
     e?.cancelable && e.preventDefault?.();
   };
@@ -386,8 +389,8 @@ function PrebakeSettingsContent() {
     editorRef.current?.setCode(code);
   };
   useEffect(() => {
-    document.addEventListener('prebake-evaluate', handleSaveEvent);
-    document.addEventListener('prebake-toggle-comment', handleToggleComment);
+    document.addEventListener('repl-evaluate', handleSaveEvent);
+    document.addEventListener('repl-toggle-comment', handleToggleComment);
     return () => {
       document.removeEventListener('prebake-evaluate', handleSaveEvent);
       document.removeEventListener('prebake-toggle-comment', handleToggleComment);

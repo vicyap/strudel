@@ -9,15 +9,6 @@ import { vscodeKeymap } from '@replit/codemirror-vscode-keymap';
 import { helix, commands } from 'codemirror-helix';
 import { logger } from '@strudel/core';
 
-export const prebakeField = StateField.define({
-  create() {
-    return 'PrebakeEditor';
-  },
-  update(value, _tr) {
-    return value;
-  },
-});
-
 const vscodePlugin = ViewPlugin.fromClass(
   class {
     constructor() {}
@@ -35,7 +26,10 @@ function replEval(view) {
     // Dispatch a dedicated evaluate event first
     let handled = false;
     try {
-      const ev = new CustomEvent('repl-evaluate', { detail: { source: 'vim', view }, cancelable: true });
+      const ev = new CustomEvent('repl-evaluate', {
+        detail: { source: 'vim', view },
+        cancelable: true,
+      });
       handled = document.dispatchEvent(ev) === false; // false means preventDefault was called
     } catch (e) {
       console.error('Error dispatching repl-evaluate event', e);
@@ -105,13 +99,11 @@ try {
     // internal actions and works with current selections/visual mode.
     try {
       Vim.defineAction('strudelToggleComment', (cm) => {
-        const view = cm?.view || cm;
         try {
-          const toggleEventName =
-            view?.cm6?.state?.field(prebakeField, false) !== undefined
-              ? 'prebake-toggle-comment'
-              : 'repl-toggle-comment';
-          const ev = new CustomEvent(toggleEventName, { detail: { source: 'vim', view }, cancelable: true });
+          const ev = new CustomEvent('repl-toggle-comment', {
+            detail: { source: 'vim', view: cm.cm6 },
+            cancelable: true,
+          });
           document.dispatchEvent(ev);
         } catch (e) {
           console.error('strudelToggleComment dispatch failed', e);
@@ -132,17 +124,6 @@ try {
     // :w to evaluate
     Vim.defineEx('write', 'w', (cm) => {
       const view = cm?.view || cm; // CM6 Vim passes either an object with view or the view itself
-      const isPrebake = view?.cm6?.state?.field(prebakeField, false) !== undefined;
-      if (isPrebake) {
-        let prebakeEventHandled = false;
-        try {
-          const ev = new CustomEvent('prebake-evaluate', { detail: { source: 'vim', view }, cancelable: true });
-          prebakeEventHandled = document.dispatchEvent(ev) === false; // false means preventDefault was called
-          return;
-        } catch (e) {
-          console.error('Error dispatching repl-evaluate event', e);
-        }
-      }
       try {
         view?.focus?.();
         // Let the app know this came from Vim :w
@@ -151,7 +132,7 @@ try {
         } catch (e) {
           console.error('Error logging Vim :w evaluation', e);
         }
-        replEval(view);
+        replEval(cm.cm6);
       } catch (e) {
         console.error('Error dispatching :w evaluation event', e);
       }
