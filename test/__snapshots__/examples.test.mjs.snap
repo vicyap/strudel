@@ -11110,6 +11110,101 @@ exports[`runs examples > example "seqPLoop" example index 0 1`] = `
 ]
 `;
 
+exports[`runs examples > example "set" example index 0 1`] = `
+[
+  "[ 0/1 → 1/4 | note:c s:triangle ]",
+  "[ 1/4 → 1/2 | note:a s:triangle ]",
+  "[ 1/2 → 3/4 | note:f s:triangle ]",
+  "[ 3/4 → 1/1 | note:e s:triangle ]",
+  "[ 1/1 → 5/4 | note:c s:triangle ]",
+  "[ 5/4 → 3/2 | note:a s:triangle ]",
+  "[ 3/2 → 7/4 | note:f s:triangle ]",
+  "[ 7/4 → 2/1 | note:e s:triangle ]",
+  "[ 2/1 → 9/4 | note:c s:triangle ]",
+  "[ 9/4 → 5/2 | note:a s:triangle ]",
+  "[ 5/2 → 11/4 | note:f s:triangle ]",
+  "[ 11/4 → 3/1 | note:e s:triangle ]",
+  "[ 3/1 → 13/4 | note:c s:triangle ]",
+  "[ 13/4 → 7/2 | note:a s:triangle ]",
+  "[ 7/2 → 15/4 | note:f s:triangle ]",
+  "[ 15/4 → 4/1 | note:e s:triangle ]",
+]
+`;
+
+exports[`runs examples > example "set" example index 1 1`] = `
+[
+  "[ (0/1 → 1/8) ⇝ 1/4 | note:c s:sine ]",
+  "[ 0/1 ⇜ (1/8 → 1/4) | note:c s:sine ]",
+  "[ (1/4 → 3/8) ⇝ 1/2 | note:c s:sine ]",
+  "[ 1/4 ⇜ (3/8 → 1/2) | note:c s:sine ]",
+  "[ (1/2 → 5/8) ⇝ 3/4 | note:a s:sine ]",
+  "[ 1/2 ⇜ (5/8 → 3/4) | note:a s:sine ]",
+  "[ (3/4 → 7/8) ⇝ 1/1 | note:a s:sine ]",
+  "[ 3/4 ⇜ (7/8 → 1/1) | note:a s:sine ]",
+  "[ (1/1 → 9/8) ⇝ 5/4 | note:c s:sine ]",
+  "[ 1/1 ⇜ (9/8 → 5/4) | note:c s:sine ]",
+  "[ (5/4 → 11/8) ⇝ 3/2 | note:c s:sine ]",
+  "[ 5/4 ⇜ (11/8 → 3/2) | note:c s:sine ]",
+  "[ (3/2 → 13/8) ⇝ 7/4 | note:a s:sine ]",
+  "[ 3/2 ⇜ (13/8 → 7/4) | note:a s:sine ]",
+  "[ (7/4 → 15/8) ⇝ 2/1 | note:a s:sine ]",
+  "[ 7/4 ⇜ (15/8 → 2/1) | note:a s:sine ]",
+  "[ (2/1 → 17/8) ⇝ 9/4 | note:c s:sine ]",
+  "[ 2/1 ⇜ (17/8 → 9/4) | note:c s:sine ]",
+  "[ (9/4 → 19/8) ⇝ 5/2 | note:c s:sine ]",
+  "[ 9/4 ⇜ (19/8 → 5/2) | note:c s:sine ]",
+  "[ (5/2 → 21/8) ⇝ 11/4 | note:a s:sine ]",
+  "[ 5/2 ⇜ (21/8 → 11/4) | note:a s:sine ]",
+  "[ (11/4 → 23/8) ⇝ 3/1 | note:a s:sine ]",
+  "[ 11/4 ⇜ (23/8 → 3/1) | note:a s:sine ]",
+  "[ (3/1 → 25/8) ⇝ 13/4 | note:c s:sine ]",
+  "[ 3/1 ⇜ (25/8 → 13/4) | note:c s:sine ]",
+  "[ (13/4 → 27/8) ⇝ 7/2 | note:c s:sine ]",
+  "[ 13/4 ⇜ (27/8 → 7/2) | note:c s:sine ]",
+  "[ (7/2 → 29/8) ⇝ 15/4 | note:a s:sine ]",
+  "[ 7/2 ⇜ (29/8 → 15/4) | note:a s:sine ]",
+  "[ (15/4 → 31/8) ⇝ 4/1 | note:a s:sine ]",
+  "[ 15/4 ⇜ (31/8 → 4/1) | note:a s:sine ]",
+]
+`;
+
+exports[`runs examples > example "set" example index 2 1`] = `
+[
+  "[ 0/1 → 1/8 | value:0 note:c ]",
+  "[ 1/8 → 1/4 | value:0 note:c ]",
+  "[ 1/4 → 3/8 | value:0 note:a ]",
+  "[ 3/8 → 1/2 | value:0 note:a ]",
+  "[ 1/2 → 5/8 | value:0 note:f ]",
+  "[ 5/8 → 3/4 | value:0 note:f ]",
+  "[ 3/4 → 7/8 | value:0 note:e ]",
+  "[ 7/8 → 1/1 | value:0 note:e ]",
+  "[ 1/1 → 9/8 | value:0 note:c ]",
+  "[ 9/8 → 5/4 | value:0 note:c ]",
+  "[ 5/4 → 11/8 | value:0 note:a ]",
+  "[ 11/8 → 3/2 | value:0 note:a ]",
+  "[ 3/2 → 13/8 | value:0 note:f ]",
+  "[ 13/8 → 7/4 | value:0 note:f ]",
+  "[ 7/4 → 15/8 | value:0 note:e ]",
+  "[ 15/8 → 2/1 | value:0 note:e ]",
+  "[ 2/1 → 17/8 | value:0 note:c ]",
+  "[ 17/8 → 9/4 | value:0 note:c ]",
+  "[ 9/4 → 19/8 | value:0 note:a ]",
+  "[ 19/8 → 5/2 | value:0 note:a ]",
+  "[ 5/2 → 21/8 | value:0 note:f ]",
+  "[ 21/8 → 11/4 | value:0 note:f ]",
+  "[ 11/4 → 23/8 | value:0 note:e ]",
+  "[ 23/8 → 3/1 | value:0 note:e ]",
+  "[ 3/1 → 25/8 | value:0 note:c ]",
+  "[ 25/8 → 13/4 | value:0 note:c ]",
+  "[ 13/4 → 27/8 | value:0 note:a ]",
+  "[ 27/8 → 7/2 | value:0 note:a ]",
+  "[ 7/2 → 29/8 | value:0 note:f ]",
+  "[ 29/8 → 15/4 | value:0 note:f ]",
+  "[ 15/4 → 31/8 | value:0 note:e ]",
+  "[ 31/8 → 4/1 | value:0 note:e ]",
+]
+`;
+
 exports[`runs examples > example "setDefaultJoin" example index 0 1`] = `
 [
   "[ 0/1 → 1/4 | s:saw velocity:1 note:F delay:0 ]",

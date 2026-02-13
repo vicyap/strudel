@@ -1056,6 +1056,36 @@ function _composeOp(a, b, func) {
 
 // pattern composers
 const COMPOSERS = {
+  /**
+   * When called on a pattern `a`, with a input pattern `b` (`a.set(b)`),
+   * combines `a` and `b` such that anything defined in `b`
+   * overwrites the corresponding value in `a`
+   *
+   * See examples below
+   * @name set
+   * @param {Pattern} pat
+   * @returns Pattern
+   * @memberof Pattern
+   * @tags internal, combiners
+   * @example
+   * // because input pattern has `s` set,
+   * // it overrides the "sine" declared earlier
+   * note("c a f e").s("sine").set(s("triangle"))
+   * @example
+   * // Structure from original pattern is
+   * // maintained, even when explicitly set
+   * note("c a f e").s("sine").set(note("c a")
+   * .struct("x!8"))
+   * @example
+   * // Using something like `apply`, we can
+   * // invert which pattern overrides the other
+   * // Here, the struct will be "x!8", and the
+   * // notes will be c c a a f f e e
+   * note("c a f e").apply(x=>{
+   * // pure(0) here is used as a dummy pattern
+   *     return pure(0).struct("x!8").set(x)
+   * })
+   */
   set: [(a, b) => b],
   keep: [(a) => a],
   keepif: [(a, b) => (b ? a : undefined)],
