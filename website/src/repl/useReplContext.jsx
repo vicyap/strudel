@@ -184,13 +184,11 @@ export function useReplContext() {
   }, [_settings]);
 
   useEffect(() => {
-    const prebake = async () =>
-      Promise.all([modulesLoading, presets]).then(() => {
-        if (prebakeScript?.length) {
-          return evaluateUserPrebake(prebakeScript ?? '');
-        }
-      });
-    editorRef.current?.updatePrebake(prebake);
+    Promise.all([modulesLoading, presets]).then(() => {
+      if (prebakeScript?.length) {
+        return evaluateUserPrebake(prebakeScript ?? '');
+      }
+    });
   }, [prebakeScript]);
 
   //

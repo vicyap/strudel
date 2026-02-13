@@ -412,10 +412,6 @@ export class StrudelMirror {
   setAutocompletionEnabled(enabled) {
     this.reconfigureExtension('isAutoCompletionEnabled', enabled);
   }
-  updatePrebake(prebake) {
-    logger('[repl] prebake updated');
-    this.prebaked = prebake();
-  }
   updateSettings(settings) {
     this.setFontSize(settings.fontSize);
     this.setFontFamily(settings.fontFamily);
