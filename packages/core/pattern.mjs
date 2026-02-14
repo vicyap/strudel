@@ -1061,10 +1061,10 @@ const COMPOSERS = {
    * combines `a` and `b` such that anything defined in `b`
    * and anything defined in `a` that is *not* defined in `b`
    * will be in the resulting pattern.
-   * 
-   * The structure is maintained from `a`, 
-   * because the default pattern alignment is `in`, 
-   * see the section on `Pattern Alignment` 
+   *
+   * The structure is maintained from `a`,
+   * because the default pattern alignment is `in`,
+   * see the section on `Pattern Alignment`
    * in the technical manual in the docs
    *
    * This is the inverse of `keep`
@@ -1079,16 +1079,17 @@ const COMPOSERS = {
    * // because input pattern has `s` set,
    * // it overrides the "sine" declared earlier
    * note("c a f e").s("sine").set(s("triangle"))
+   */
   set: [(a, b) => b],
   /**
    * When called on a pattern `a`, with a input pattern `b` (`a.keep(b)`),
    * combines `a` and `b` such that anything defined in `a`,
    * and anything defined in `b` that is *not* defined in `a`
    * will be in the resulting pattern
-   * 
-   * The structure is maintained from `a`, 
-   * because the default pattern alignment is `in`, 
-   * see the section on `Pattern Alignment` 
+   *
+   * The structure is maintained from `a`,
+   * because the default pattern alignment is `in`,
+   * see the section on `Pattern Alignment`
    * in the technical manual in the docs
    *
    * This is the inverse of `set`
@@ -1100,8 +1101,8 @@ const COMPOSERS = {
    * @returns {Pattern}
    * @tags internal, combiners
    * @example
-   * // notes, already defined, will stay "c a f e", 
-   * // while "s", not defined, will be set to "piano" 
+   * // notes, already defined, will stay "c a f e",
+   * // while "s", not defined, will be set to "piano"
    * note("c a f e").keep(note("e f a c").s("piano"))
    */
   keep: [(a) => a],
