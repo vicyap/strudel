@@ -316,7 +316,7 @@ export const run = (n) => saw.range(0, n).round().segment(n);
  * // "hh".s().struct("1 0 1")
  */
 export const binary = (n) => {
-  const nBits = reify(n).log2(0).floor().add(1);
+  const nBits = reify(n).log2().floor().add(1);
   return binaryN(n, nBits);
 };
 
@@ -348,7 +348,7 @@ export const binaryN = (n, nBits = 16) => {
  *   .partials(binaryL(irand(4096).add(1)))
  */
 export const binaryL = (n) => {
-  const nBits = reify(n).log2(0).floor().add(1);
+  const nBits = reify(n).log2().floor().add(1);
   return binaryNL(n, nBits);
 };
 

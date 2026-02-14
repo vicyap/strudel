@@ -1158,7 +1158,6 @@ const COMPOSERS = {
   div: [numeralArgs((a, b) => a / b)],
   mod: [numeralArgs(_mod)],
   pow: [numeralArgs(Math.pow)],
-  log2: [numeralArgs(Math.log2)],
   band: [numeralArgs((a, b) => a & b)],
   bor: [numeralArgs((a, b) => a | b)],
   bxor: [numeralArgs((a, b) => a ^ b)],
@@ -1863,6 +1862,8 @@ export const round = register('round', function (pat) {
 export const floor = register('floor', function (pat) {
   return pat.asNumber().fmap((v) => Math.floor(v));
 });
+
+export const log2 = register('log2', (pat) => pat.asNumber().fmap((v) => Math.log2(v)));
 
 /**
  * Assumes a numerical pattern. Returns a new pattern with all values set to
