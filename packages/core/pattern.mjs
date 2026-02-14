@@ -1060,7 +1060,12 @@ const COMPOSERS = {
    * When called on a pattern `a`, with a input pattern `b` (`a.set(b)`),
    * combines `a` and `b` such that anything defined in `b`
    * and anything defined in `a` that is *not* defined in `b`
-   * will be in the resulting pattern
+   * will be in the resulting pattern.
+   * 
+   * The structure is maintained from `a`, 
+   * because the default pattern alignment is `in`, 
+   * see the section on `Pattern Alignment` 
+   * in the technical manual in the docs
    *
    * This is the inverse of `keep`
    *
@@ -1074,27 +1079,17 @@ const COMPOSERS = {
    * // because input pattern has `s` set,
    * // it overrides the "sine" declared earlier
    * note("c a f e").s("sine").set(s("triangle"))
-   * @example
-   * // Structure from original pattern is
-   * // maintained, even when explicitly set
-   * note("c a f e").s("sine").set(note("c a")
-   * .struct("x!8"))
-   * @example
-   * // Using something like `apply`, we can
-   * // invert which pattern overrides the other
-   * // Here, the struct will be "x!8", and the
-   * // notes will be c c a a f f e e
-   * note("c a f e").apply(x=>{
-   * // pure(0) here is used as a dummy pattern
-   *     return pure(0).struct("x!8").set(x)
-   * })
-   */
   set: [(a, b) => b],
   /**
    * When called on a pattern `a`, with a input pattern `b` (`a.keep(b)`),
    * combines `a` and `b` such that anything defined in `a`,
    * and anything defined in `b` that is *not* defined in `a`
    * will be in the resulting pattern
+   * 
+   * The structure is maintained from `a`, 
+   * because the default pattern alignment is `in`, 
+   * see the section on `Pattern Alignment` 
+   * in the technical manual in the docs
    *
    * This is the inverse of `set`
    *
@@ -1105,10 +1100,9 @@ const COMPOSERS = {
    * @returns {Pattern}
    * @tags internal, combiners
    * @example
-   * // Struct, already defined in original pattern
-   * // Is combined with the input, such that we get
-   * // c c a a f f e e
-   * pure(0).struct("x!8").keep(note("c a f e"))
+   * // notes, already defined, will stay "c a f e", 
+   * // while "s", not defined, will be set to "piano" 
+   * note("c a f e").keep(note("e f a c").s("piano"))
    */
   keep: [(a) => a],
   keepif: [(a, b) => (b ? a : undefined)],
