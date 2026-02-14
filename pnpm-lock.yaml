@@ -35,6 +35,9 @@ importers:
       '@strudel/core':
         specifier: workspace:*
         version: link:packages/core
+      '@strudel/edo':
+        specifier: workspace:*
+        version: link:packages/edo
       '@strudel/mini':
         specifier: workspace:*
         version: link:packages/mini
@@ -117,6 +120,9 @@ importers:
       '@strudel/draw':
         specifier: workspace:*
         version: link:../../packages/draw
+      '@strudel/edo':
+        specifier: workspace:*
+        version: link:../../packages/edo
       '@strudel/mini':
         specifier: workspace:*
         version: link:../../packages/mini
@@ -307,6 +313,28 @@ importers:
         specifier: ^6.0.11
         version: 6.0.11(@types/node@22.10.10)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0)
 
+  packages/edo:
+    dependencies:
+      '@strudel/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tonaljs/tonal':
+        specifier: ^4.10.0
+        version: 4.10.0
+      chord-voicings:
+        specifier: ^0.0.1
+        version: 0.0.1
+      webmidi:
+        specifier: ^3.1.12
+        version: 3.1.12
+    devDependencies:
+      vite:
+        specifier: ^6.0.11
+        version: 6.0.11(@types/node@22.10.10)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0)
+      vitest:
+        specifier: ^3.0.4
+        version: 3.0.4(@types/debug@4.1.12)(@types/node@22.10.10)(@vitest/ui@3.0.4)(jiti@2.4.2)(lightningcss@1.29.1)(terser@5.37.0)(yaml@2.7.0)
+
   packages/embed: {}
 
   packages/gamepad:
@@ -473,6 +501,9 @@ importers:
       '@strudel/draw':
         specifier: workspace:*
         version: link:../draw
+      '@strudel/edo':
+        specifier: workspace:*
+        version: link:../edo
       '@strudel/hydra':
         specifier: workspace:*
         version: link:../hydra
@@ -648,6 +679,9 @@ importers:
       '@strudel/core':
         specifier: workspace:*
         version: link:../core
+      '@strudel/edo':
+        specifier: workspace:*
+        version: link:../edo
       '@strudel/mini':
         specifier: workspace:*
         version: link:../mini
@@ -777,6 +811,9 @@ importers:
       '@strudel/draw':
         specifier: workspace:*
         version: link:../packages/draw
+      '@strudel/edo':
+        specifier: workspace:*
+        version: link:../packages/edo
       '@strudel/gamepad':
         specifier: workspace:*
         version: link:../packages/gamepad

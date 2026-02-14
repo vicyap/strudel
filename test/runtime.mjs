@@ -13,6 +13,7 @@ import { mini, m } from '@strudel/mini/mini.mjs';
 // import euclid from '@strudel/core/euclid.mjs';
 //import '@strudel/midi/midi.mjs';
 import * as tonalHelpers from '@strudel/tonal';
+import * as edoHelpers from '@strudel/edo';
 import '@strudel/xen/xen.mjs';
 // import '@strudel/xen/tune.mjs';
 // import '@strudel/core/euclid.mjs';
@@ -144,6 +145,7 @@ evalScope(
   toneHelpersMocked,
   uiHelpersMocked,
   webaudio,
+  edoHelpers,
   tonalHelpers,
   gamepadHelpers,
   /*
