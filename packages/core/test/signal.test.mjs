@@ -9,7 +9,7 @@ import Fraction from 'fraction.js';
 import { describe, it, expect, vi } from 'vitest';
 
 import { saw, saw2, isaw, isaw2, per, perx, cyclesPer } from '../signal.mjs';
-import { fastcat, sequence, State, TimeSpan, Hap } from '../index.mjs';
+import { fastcat, sequence, State, TimeSpan, Hap, note } from '../index.mjs';
 
 const st = (begin, end) => new State(ts(begin, end));
 const ts = (begin, end) => new TimeSpan(Fraction(begin), Fraction(end));
@@ -57,5 +57,11 @@ describe('perx', () => {
       perx.struct(true, true, true, fastcat(true, fastcat(true, true))),
       sequence(3, 3, 3, fastcat(4, fastcat(5, 5))),
     );
+  });
+});
+
+describe('shuffle', () => {
+  it('returns original pattern if input is 1', () => {
+    expect(note('c d e f').sound('piano').shuffle(1).firstCycle()).toEqual(note('c d e f').sound('piano').firstCycle());
   });
 });
