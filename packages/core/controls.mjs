@@ -1906,7 +1906,7 @@ export const { delayfeedback, delayfb, dfb } = registerControl('delayfeedback', 
  */
 export const { delayspeed } = registerControl('delayspeed');
 
-/*
+/**
  * @name delaytime
  * @tags orbit, superdough, supradough
  * @param {number | Pattern} delaytime sets the time of the delay effect.
