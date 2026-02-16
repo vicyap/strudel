@@ -127,6 +127,7 @@ const loadSoundfont = () => {};
 const loadCsound = () => {};
 const loadCSound = () => {};
 const loadcsound = () => {};
+const getDuration = () => {};
 
 const midin = () => {
   return (ccNum) => strudel.ref(() => 0); // returns ref with default value 0
@@ -170,6 +171,7 @@ evalScope(
     loadCSound,
     loadCsound,
     loadcsound,
+    getDuration,
     setcps: id,
     setcpm: id,
     Clock: {}, // whatever

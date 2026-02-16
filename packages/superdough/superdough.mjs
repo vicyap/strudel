@@ -91,7 +91,8 @@ export function setGainCurve(newGainCurveFunc) {
  *
  * Note: `must` be called with await, otherwise you'll get a pending Promise object.
  *
- * @name getDuration
+ * @name getDuration,getDur
+ * @tag samples
  * @param {string} sampleName
  * @param {number} (optional) n
  *
@@ -104,6 +105,8 @@ export function setGainCurve(newGainCurveFunc) {
 export const getDuration = (s, n = 0) => {
   return getSampleBufferSource({ s, n }, soundMap.get(s)[s].data.samples).then((x) => x.bufferDuration);
 };
+
+export const getDur = getDuration;
 
 function aliasBankMap(aliasMap) {
   // Make all bank keys lower case for case insensitivity
