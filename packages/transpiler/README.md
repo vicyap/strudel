@@ -23,9 +23,9 @@ where the enter/leave functions (both optional) follow the `estree-walker` walk 
 - kabelsalat: transform the code to handle the `K(..)` kabelsalat notation
 
 it also
-- converts pseudo note variables to note strings
+
 - adds return statement to the last expression
-- handle label capturing for block-based eval
+- handles label capturing for block-based eval
 
 ## Install
 
