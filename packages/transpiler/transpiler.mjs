@@ -3,15 +3,22 @@ transpiler.mjs - <short description TODO>
 Copyright (C) 2022 Strudel contributors - see <https://codeberg.org/uzu/strudel/src/branch/main/packages/superdough/superdough.mjs>
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version. This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details. You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-import { getLeafLocations } from '@strudel/mini';
 import { parse } from 'acorn';
 import escodegen from 'escodegen';
 import { walk } from 'estree-walker';
-import { getLanguages } from './helpers.mjs';
-import { miniTranspilerPlugins } from './plugin-mini.mjs';
-import { widgetTranspilerPlugins } from './plugin-widgets.mjs';
-import { sampleTranspilerPlugins } from './plugin-sample.mjs';
-import { transpilerPlugin as kabelsalatTranspilerPlugins } from './plugin-kabelsalat.mjs';
+
+let languages = new Map();
+// config = { getLocations: (code: string, offset?: number) => number[][] }
+// see mondough.mjs for example use
+// the language will kick in when the code contains a template literal of type
+// example: mondo`...` will use language of type "mondo"
+// TODO: refactor tidal.mjs to use this
+export function registerLanguage(type, config) {
+  languages.set(type, config);
+}
+export function getLanguages() {
+  return languages;
+}
 
 const plugins = [];
 
@@ -21,11 +28,6 @@ export function registerTranspilerPlugin(plugin) {
 export function getPlugins() {
   return plugins.flat(Infinity);
 }
-
-registerTranspilerPlugin(miniTranspilerPlugins);
-registerTranspilerPlugin(widgetTranspilerPlugins);
-registerTranspilerPlugin(sampleTranspilerPlugins);
-registerTranspilerPlugin(kabelsalatTranspilerPlugins);
 
 export function transpiler(input, options = {}) {
   options = {
