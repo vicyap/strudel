@@ -230,7 +230,7 @@ export class StrudelMirror {
       afterEval: (options) => {
         // remember for when highlighting is toggled on
         this.miniLocations = options.meta?.miniLocations || [];
-        this.widgets = options.meta?.widgets;
+        this.widgets = options.meta?.widgets || [];
 
         const sliders = this.widgets.filter((w) => w.type === 'slider');
         const widgets = this.widgets.filter((w) => w.type !== 'slider');
