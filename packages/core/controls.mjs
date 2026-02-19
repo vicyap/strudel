@@ -1908,7 +1908,7 @@ export const { delayspeed } = registerControl('delayspeed');
 
 /**
  * Sets the time of the delay effect in seconds.
- * 
+ *
  * @name delaytime
  * @tags orbit, superdough, supradough
  * @param {number | Pattern} delay in seconds
