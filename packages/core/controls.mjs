@@ -1906,13 +1906,19 @@ export const { delayfeedback, delayfb, dfb } = registerControl('delayfeedback', 
  */
 export const { delayspeed } = registerControl('delayspeed');
 
-/*
+/**
+ * Sets the time of the delay effect in seconds.
+ *
  * @name delaytime
  * @tags orbit, superdough, supradough
- * @param {number | Pattern} delaytime sets the time of the delay effect.
+ * @param {number | Pattern} delay in seconds
  * @synonyms delayt, dt
  * @example
- * note("d d a# a".fast(2)).s("sawtooth").delay(.8).delaytime(1/2).delayspeed("<2 .5 -1 -2>")
+ * note("d d a# a".fast(2))
+ * .s("sawtooth")
+ * .delay(.8)
+ * .delaytime(1/2)
+ * .delayspeed("<2 .5 -1 -2>")
  */
 export const { delaytime, delayt, dt } = registerControl('delaytime', 'delayt', 'dt');
 

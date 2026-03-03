@@ -316,7 +316,7 @@ export const run = (n) => saw.range(0, n).round().segment(n);
  * // "hh".s().struct("1 0 1")
  */
 export const binary = (n) => {
-  const nBits = reify(n).log2(0).floor().add(1);
+  const nBits = reify(n).log2().floor().add(1);
   return binaryN(n, nBits);
 };
 
@@ -348,7 +348,7 @@ export const binaryN = (n, nBits = 16) => {
  *   .partials(binaryL(irand(4096).add(1)))
  */
 export const binaryL = (n) => {
-  const nBits = reify(n).log2(0).floor().add(1);
+  const nBits = reify(n).log2().floor().add(1);
   return binaryNL(n, nBits);
 };
 
@@ -389,7 +389,9 @@ export const randL = (n) => {
 export const randrun = (n) => {
   return signal((t, controls) => {
     // Without adding 0.5, the first cycle is always 0,1,2,3,...
-    const rands = getRandsAtTime(t.floor().add(0.5), n, controls.randSeed);
+    let rands = getRandsAtTime(t.floor().add(0.5), n, controls.randSeed);
+    // Support n = 1
+    if (!Array.isArray(rands)) rands = [rands];
     const nums = rands
       .map((n, i) => [n, i])
       .sort((a, b) => (a[0] > b[0]) - (a[0] < b[0]))

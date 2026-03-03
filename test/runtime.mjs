@@ -13,6 +13,7 @@ import { mini, m } from '@strudel/mini/mini.mjs';
 // import euclid from '@strudel/core/euclid.mjs';
 //import '@strudel/midi/midi.mjs';
 import * as tonalHelpers from '@strudel/tonal';
+import * as edoHelpers from '@strudel/edo';
 import '@strudel/xen/xen.mjs';
 // import '@strudel/xen/tune.mjs';
 // import '@strudel/core/euclid.mjs';
@@ -126,6 +127,7 @@ const loadSoundfont = () => {};
 const loadCsound = () => {};
 const loadCSound = () => {};
 const loadcsound = () => {};
+const getDuration = () => {};
 
 const midin = () => {
   return (ccNum) => strudel.ref(() => 0); // returns ref with default value 0
@@ -144,6 +146,7 @@ evalScope(
   toneHelpersMocked,
   uiHelpersMocked,
   webaudio,
+  edoHelpers,
   tonalHelpers,
   gamepadHelpers,
   /*
@@ -168,6 +171,7 @@ evalScope(
     loadCSound,
     loadCsound,
     loadcsound,
+    getDuration,
     setcps: id,
     setcpm: id,
     Clock: {}, // whatever
