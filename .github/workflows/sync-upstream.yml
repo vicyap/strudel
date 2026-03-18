@@ -1,0 +1,100 @@
+name: Sync from Upstream
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://codeberg.org/uzu/strudel.git
+          git fetch upstream main --tags
+
+      - name: Check for new commits
+        id: check
+        run: |
+          UPSTREAM_SHA=$(git rev-parse upstream/main)
+          ORIGIN_SHA=$(git rev-parse origin/main)
+          if [ "$UPSTREAM_SHA" = "$ORIGIN_SHA" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            COMMIT_COUNT=$(git rev-list origin/main..upstream/main --count)
+            echo "commit_count=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+            echo "upstream_sha=${UPSTREAM_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Push sync branch and tags
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git checkout -B upstream-sync upstream/main
+          git push -f origin upstream-sync
+          git push origin --tags
+
+      - name: Create or update PR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR=$(gh pr list --head upstream-sync --base main --state open --json number -q '.[0].number')
+          COMMIT_COUNT="${{ steps.check.outputs.commit_count }}"
+          SHORT_SHA="${{ steps.check.outputs.upstream_sha }}"
+          TITLE="Sync upstream (${COMMIT_COUNT} commits, up to ${SHORT_SHA})"
+          BODY="Automated sync from [upstream](https://codeberg.org/uzu/strudel) (Codeberg). Contains ${COMMIT_COUNT} new commit(s)."
+
+          if [ -z "$PR" ]; then
+            gh pr create \
+              --title "$TITLE" \
+              --body "$BODY" \
+              --head upstream-sync \
+              --base main
+          else
+            gh api "repos/${{ github.repository }}/pulls/${PR}" \
+              -X PATCH \
+              -f title="$TITLE" \
+              -f body="$BODY" > /dev/null
+          fi
+
+      - name: Auto-merge if clean
+        if: steps.check.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR=$(gh pr list --head upstream-sync --base main --state open --json number -q '.[0].number')
+          if [ -z "$PR" ]; then
+            echo "No open PR found"
+            exit 0
+          fi
+
+          # Wait for GitHub to compute mergeability
+          for i in $(seq 1 6); do
+            sleep 10
+            MERGEABLE=$(gh pr view "$PR" --json mergeable -q '.mergeable')
+            if [ "$MERGEABLE" != "UNKNOWN" ]; then
+              break
+            fi
+          done
+
+          if [ "$MERGEABLE" = "MERGEABLE" ]; then
+            echo "PR is mergeable, auto-merging..."
+            gh pr merge "$PR" --merge --delete-branch
+          else
+            echo "PR has conflicts (status: $MERGEABLE), requires manual resolution"
+          fi
