@@ -5,28 +5,26 @@ import { Repl } from '../../repl/Repl';
 const siteUrl = (Astro.site?.origin ?? 'http://localhost:4321').replace(/\/$/, '');
 const defaultCode = `// ── STRUDEL + CLAUDE CODE ─────────────────────────────────
 //
-// Live code music with AI. This REPL connects to a local
-// relay server that Claude Code controls via HTTP.
+// Live code music with AI. Copy this entire code block and
+// paste it into your Claude Code terminal. Claude will set
+// up the relay, connect to this REPL, and start playing the
+// trance loop below. Then tell Claude what to change.
 //
-// HOW TO START:
-//   1. Press ctrl+enter to test audio (you should hear a trance loop)
-//   2. Copy this entire code block from the editor
-//   3. Paste it into your Claude Code terminal
-//   4. Claude will set up the relay and start making music
+// Before pasting: press ctrl+enter once to unlock audio.
 //
-// ── RELAY SETUP (Claude will do this automatically) ──────
+// ── RELAY SETUP (Claude does this automatically) ─────────
 //
 // mkdir -p /tmp/strudel-relay && cd /tmp/strudel-relay
 // curl -sO ${siteUrl}/relay.mjs
 // npm init -y 2>/dev/null && npm i ws 2>/dev/null
 // node relay.mjs &
 //
-// ── HTTP API (how Claude controls the REPL) ──────────────
+// ── HTTP API ─────────────────────────────────────────────
 //
 // Read current code:
 //   curl -s http://localhost:9001/api/code
 //
-// Replace code and play:
+// Replace code and play (write to file, then POST):
 //   curl -s -X POST http://localhost:9001/api/set-and-evaluate \\
 //     --data-binary @/tmp/strudel-code.js
 //
@@ -35,11 +33,9 @@ const defaultCode = `// ── STRUDEL + CLAUDE CODE ─────────
 //   curl -s -X POST http://localhost:9001/api/stop
 //   curl -s http://localhost:9001/api/status
 //
-// Set tempo (0.5 = 120 BPM):
+// Set tempo (0.5 cps = 120 BPM in 4/4):
 //   curl -s -X POST http://localhost:9001/api/cps \\
 //     -H 'Content-Type: application/json' -d '{"cps":0.5}'
-//
-// Workflow: write code to /tmp/strudel-code.js, then POST it.
 //
 // ── STRUDEL QUICK REFERENCE ──────────────────────────────
 //
@@ -67,6 +63,18 @@ const defaultCode = `// ── STRUDEL + CLAUDE CODE ─────────
 // ORBIT:    .o(n) — route instruments to separate effect buses
 //
 // Full reference: ${siteUrl}/claude/skill
+//
+// ── INSTRUCTIONS ─────────────────────────────────────────
+//
+// After pasting this prompt, set up the relay, then
+// immediately send the trance starter code below using
+// set-and-evaluate to start playback. Then ask me what
+// I'd like to change. Suggest things like:
+//   - "speed it up" or "slow it down"
+//   - "change key to D minor" or "make it darker"
+//   - "add more reverb" or "make it more acid"
+//   - "switch to a house beat" or "make it lo-fi"
+//   - "pause" to stop playback
 // ──────────────────────────────────────────────────────────
 
 // Trance starter — an open canvas to build on
