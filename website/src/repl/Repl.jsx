@@ -11,10 +11,10 @@ import EmbeddedReplEditor from './components/EmbeddedReplEditor';
 import { useReplContext } from './useReplContext';
 import { useSettings } from '@src/settings.mjs';
 
-export function Repl({ embedded = false }) {
+export function Repl({ embedded = false, defaultCode }) {
   const isEmbedded = embedded || isIframe();
   const Editor = isUdels() ? UdelsEditor : isEmbedded ? EmbeddedReplEditor : ReplEditor;
-  const context = useReplContext();
+  const context = useReplContext({ defaultCode });
   const { fontFamily } = useSettings();
   return <Editor context={context} style={{ fontFamily }} />;
 }
