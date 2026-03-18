@@ -1,0 +1,14 @@
+.git
+node_modules
+dist
+dist-*
+dev-dist
+coverage
+src-tauri/target
+.worktrees
+.idea
+.vscode
+.claude
+.github
+*.md
+!packages/**/README.md
