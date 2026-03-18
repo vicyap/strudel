@@ -1,0 +1,105 @@
+---
+import HeadCommon from '../components/HeadCommon.astro';
+import { Repl } from '../repl/Repl';
+---
+
+<html lang="en" class="m-0 dark">
+  <head>
+    <HeadCommon />
+    <title>Strudel REPL (MCP)</title>
+  </head>
+  <body class="h-app-height bg-background m-0">
+    <Repl client:only="react" />
+    <script is:inline>
+      (function() {
+        const WS_URL = 'ws://localhost:' + (window.__STRUDEL_MCP_PORT || 9001);
+        let ws;
+        let reconnectTimer;
+
+        function connect() {
+          ws = new WebSocket(WS_URL);
+
+          ws.onopen = () => {
+            console.log('[strudel-mcp] connected to', WS_URL);
+            clearTimeout(reconnectTimer);
+          };
+
+          ws.onclose = () => {
+            console.log('[strudel-mcp] disconnected, reconnecting in 2s...');
+            reconnectTimer = setTimeout(connect, 2000);
+          };
+
+          ws.onerror = (err) => {
+            console.error('[strudel-mcp] WebSocket error:', err);
+          };
+
+          ws.onmessage = async (event) => {
+            let msg;
+            try {
+              msg = JSON.parse(event.data);
+            } catch {
+              console.error('[strudel-mcp] invalid JSON:', event.data);
+              return;
+            }
+
+            const sm = window.strudelMirror;
+            if (!sm) {
+              ws.send(JSON.stringify({ id: msg.id, error: { message: 'strudelMirror not available yet' } }));
+              return;
+            }
+
+            try {
+              let result;
+              switch (msg.method) {
+                case 'setCode':
+                  sm.setCode(msg.params.code);
+                  result = { success: true };
+                  break;
+                case 'evaluate':
+                  await sm.evaluate();
+                  result = { success: true };
+                  break;
+                case 'setAndEvaluate':
+                  sm.setCode(msg.params.code);
+                  await sm.evaluate();
+                  result = { success: true };
+                  break;
+                case 'stop':
+                  await sm.stop();
+                  result = { success: true };
+                  break;
+                case 'getCode':
+                  result = { code: sm.code };
+                  break;
+                case 'setCps':
+                  sm.repl.setCps(msg.params.cps);
+                  result = { success: true };
+                  break;
+                case 'getStatus':
+                  result = {
+                    started: sm.repl.scheduler?.started ?? false,
+                    cps: sm.repl.scheduler?.cps ?? null,
+                    code: sm.code,
+                  };
+                  break;
+                default:
+                  throw new Error('Unknown method: ' + msg.method);
+              }
+              ws.send(JSON.stringify({ id: msg.id, result }));
+            } catch (err) {
+              ws.send(JSON.stringify({ id: msg.id, error: { message: err.message } }));
+            }
+          };
+        }
+
+        connect();
+
+        window.__strudelMcpDisconnect = () => {
+          clearTimeout(reconnectTimer);
+          ws?.close();
+          console.log('[strudel-mcp] manually disconnected');
+        };
+      })();
+    </script>
+  </body>
+</html>
