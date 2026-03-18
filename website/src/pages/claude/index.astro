@@ -55,6 +55,11 @@ const defaultCode = `// ── STRUDEL + CLAUDE CODE ─────────
 // SYNTHS: "sawtooth" "square" "triangle" "sine" "supersaw"
 // SAMPLES: s("bd sd hh cp").bank("RolandTR909")
 //
+// PIANO: Salamander Grand Piano samples are built in, but
+// mapped by note name. Use note() with .s("piano"):
+//   note("c4 e4 g4").s("piano")
+// Do NOT use .s("piano") without note() — it will be silent.
+//
 // PITCH:    .scale("c:minor") .note("c4") .transpose(n)
 // FILTER:   .lpf(freq) .lpq(q) .lpenv(depth) .ftype("ladder")
 // ENVELOPE: .attack(t) .decay(t) .sustain(l) .release(t)
