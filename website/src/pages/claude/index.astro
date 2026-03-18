@@ -1,30 +1,55 @@
 ---
-import HeadCommon from '../components/HeadCommon.astro';
-import { Repl } from '../repl/Repl';
+import HeadCommon from '../../components/HeadCommon.astro';
+import { Repl } from '../../repl/Repl';
 
 const siteUrl = (Astro.site?.origin ?? 'http://localhost:4321').replace(/\/$/, '');
-const defaultCode = `// ── STRUDEL MCP ── AI-Controlled Live Coding ──────────────
+const defaultCode = `// ── STRUDEL + CLAUDE CODE ─────────────────────────────────
 //
-// This REPL is connected to the Strudel MCP server.
-// An AI agent (like Claude Code) can control this REPL
-// remotely via strudel_* MCP tools.
+// Live code music with AI. This REPL connects to a local
+// relay server that Claude Code controls via HTTP.
 //
-// HOW TO START A LIVE SESSION:
-//   1. Press ctrl+enter to verify audio works
+// HOW TO START:
+//   1. Press ctrl+enter to test audio (you should hear a trance loop)
 //   2. Copy this entire code block from the editor
 //   3. Paste it into your Claude Code terminal
-//   4. Ask Claude to make music — it will use its MCP tools
+//   4. Claude will set up the relay and start making music
+//
+// ── RELAY SETUP (Claude will do this automatically) ──────
+//
+// mkdir -p /tmp/strudel-relay && cd /tmp/strudel-relay
+// curl -sO ${siteUrl}/relay.mjs
+// npm init -y 2>/dev/null && npm i ws 2>/dev/null
+// node relay.mjs &
+//
+// ── HTTP API (how Claude controls the REPL) ──────────────
+//
+// Read current code:
+//   curl -s http://localhost:9001/api/code
+//
+// Replace code and play:
+//   curl -s -X POST http://localhost:9001/api/set-and-evaluate \\
+//     --data-binary @/tmp/strudel-code.js
+//
+// Play / stop / status:
+//   curl -s -X POST http://localhost:9001/api/evaluate
+//   curl -s -X POST http://localhost:9001/api/stop
+//   curl -s http://localhost:9001/api/status
+//
+// Set tempo (0.5 = 120 BPM):
+//   curl -s -X POST http://localhost:9001/api/cps \\
+//     -H 'Content-Type: application/json' -d '{"cps":0.5}'
+//
+// Workflow: write code to /tmp/strudel-code.js, then POST it.
 //
 // ── STRUDEL QUICK REFERENCE ──────────────────────────────
 //
-// BLOCKS: Each $: is an independent pattern. Separate blocks
-// with blank lines. Always write ALL blocks — Strudel replaces
-// the entire editor on each evaluation.
+// Each $: is a pattern block. Separate with blank lines.
+// Always send ALL blocks — Strudel replaces the entire editor.
 //
 // MINI NOTATION (inside quotes):
 //   space    sequence     "bd sd hh"     3 events per cycle
 //   *n       repeat       "bd*4"         4 kicks per cycle
-//   /n       slow down    "bd/2"         1 kick every 2 cycles
+//   /n       slow down    "bd/2"         every 2 cycles
 //   <>       alternate    "<c e g>"      rotate each cycle
 //   []       group        "[bd sd] hh"   subdivide
 //   ,        stack        "bd, hh*4"     play simultaneously
@@ -41,22 +66,7 @@ const defaultCode = `// ── STRUDEL MCP ── AI-Controlled Live Coding ─�
 // SIGNALS:  sine saw rand perlin — .range(min, max).slow(n)
 // ORBIT:    .o(n) — route instruments to separate effect buses
 //
-// Full reference: ${siteUrl}/skill
-//
-// ── MCP TOOLS ────────────────────────────────────────────
-//
-// Use your strudel_* MCP tools to control this REPL.
-// Run each tool's description to see usage details.
-// Key tools:
-//   strudel_get_code          read current editor code
-//   strudel_set_and_evaluate  replace all code and play
-//   strudel_evaluate          play current editor code
-//   strudel_stop              silence everything
-//   strudel_get_status        check playback state
-//   strudel_set_cps           set tempo (0.5 = 120 BPM)
-//
-// Start by reading the current code with strudel_get_code,
-// then modify and send back with strudel_set_and_evaluate.
+// Full reference: ${siteUrl}/claude/skill
 // ──────────────────────────────────────────────────────────
 
 // Trance starter — an open canvas to build on
@@ -75,13 +85,13 @@ $: s("bd*4, ~ cp ~ cp, [~ hh]*4").bank("RolandTR909").o(3)`;
 <html lang="en" class="m-0 dark">
   <head>
     <HeadCommon />
-    <title>Strudel REPL (MCP)</title>
+    <title>Strudel REPL (Claude)</title>
   </head>
   <body class="h-app-height bg-background m-0">
     <Repl client:only="react" defaultCode={defaultCode} />
     <script is:inline>
       (function() {
-        const WS_URL = 'ws://localhost:' + (window.__STRUDEL_MCP_PORT || 9001);
+        const WS_URL = 'ws://localhost:' + (window.__STRUDEL_RELAY_PORT || 9001);
         let ws;
         let reconnectTimer;
 
@@ -89,17 +99,17 @@ $: s("bd*4, ~ cp ~ cp, [~ hh]*4").bank("RolandTR909").o(3)`;
           ws = new WebSocket(WS_URL);
 
           ws.onopen = () => {
-            console.log('[strudel-mcp] connected to', WS_URL);
+            console.log('[strudel-relay] connected to', WS_URL);
             clearTimeout(reconnectTimer);
           };
 
           ws.onclose = () => {
-            console.log('[strudel-mcp] disconnected, reconnecting in 2s...');
+            console.log('[strudel-relay] disconnected, reconnecting in 2s...');
             reconnectTimer = setTimeout(connect, 2000);
           };
 
           ws.onerror = (err) => {
-            console.error('[strudel-mcp] WebSocket error:', err);
+            console.error('[strudel-relay] WebSocket error:', err);
           };
 
           ws.onmessage = async (event) => {
@@ -107,7 +117,7 @@ $: s("bd*4, ~ cp ~ cp, [~ hh]*4").bank("RolandTR909").o(3)`;
             try {
               msg = JSON.parse(event.data);
             } catch {
-              console.error('[strudel-mcp] invalid JSON:', event.data);
+              console.error('[strudel-relay] invalid JSON:', event.data);
               return;
             }
 
@@ -163,10 +173,10 @@ $: s("bd*4, ~ cp ~ cp, [~ hh]*4").bank("RolandTR909").o(3)`;
 
         connect();
 
-        window.__strudelMcpDisconnect = () => {
+        window.__strudelRelayDisconnect = () => {
           clearTimeout(reconnectTimer);
           ws?.close();
-          console.log('[strudel-mcp] manually disconnected');
+          console.log('[strudel-relay] manually disconnected');
         };
       })();
     </script>

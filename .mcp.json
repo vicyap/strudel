@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "strudel": {
-      "type": "stdio",
-      "command": "node",
-      "args": ["tools/strudel-mcp/server.mjs"]
-    }
-  }
-}
