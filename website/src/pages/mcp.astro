@@ -2,6 +2,7 @@
 import HeadCommon from '../components/HeadCommon.astro';
 import { Repl } from '../repl/Repl';
 
+const siteUrl = (Astro.site?.origin ?? 'http://localhost:4321').replace(/\/$/, '');
 const defaultCode = `// ── STRUDEL MCP ── AI-Controlled Live Coding ──────────────
 //
 // This REPL is connected to the Strudel MCP server.
@@ -40,7 +41,7 @@ const defaultCode = `// ── STRUDEL MCP ── AI-Controlled Live Coding ─�
 // SIGNALS:  sine saw rand perlin — .range(min, max).slow(n)
 // ORBIT:    .o(n) — route instruments to separate effect buses
 //
-// Full reference: http://localhost:4321/skill
+// Full reference: ${siteUrl}/skill
 //
 // ── MCP TOOLS ────────────────────────────────────────────
 //
