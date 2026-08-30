@@ -1,18 +1,13 @@
 {
-  "name": "@strudel/osc",
+  "name": "@strudel/dough",
   "version": "1.3.2",
-  "description": "OSC messaging for strudel",
-  "main": "osc.mjs",
-  "bin": "./server.js",
+  "description": "dough synth integration for strudel",
+  "main": "dough.mjs",
   "type": "module",
   "publishConfig": {
     "main": "dist/index.mjs"
   },
   "scripts": {
-    "server": "node server.js",
-    "tidal-sniffer": "node tidal-sniffer.js",
-    "client": "npx serve -p 4321",
-    "build-bin": "npx pkg server.js --targets node16-macos-x64,node16-win-x64,node16-linux-x64 --out-path bin",
     "build": "vite build",
     "prepublishOnly": "npm run build"
   },
@@ -28,9 +23,6 @@
     "algorave"
   ],
   "author": "Felix Roos <flix91@gmail.com>",
-  "contributors": [
-    "Alex McLean <alex@slab.org>"
-  ],
   "license": "AGPL-3.0-or-later",
   "bugs": {
     "url": "https://codeberg.org/uzu/strudel/issues"
@@ -39,11 +31,9 @@
   "dependencies": {
     "@strudel/core": "workspace:*",
     "@strudel/webaudio": "workspace:*",
-    "osc": "^2.4.5",
-    "ws": "^8.18.3"
+    "dough-synth": "0.2.4"
   },
   "devDependencies": {
-    "pkg": "^5.8.1",
     "vite": "^6.0.11"
   },
   "engines": {
